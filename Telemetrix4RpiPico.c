@@ -32,6 +32,7 @@
 #pragma ide diagnostic ignored "EndlessLoop"
 
 #include "include/Telemetrix4RpiPico.h"
+//#include "pico/stdio_uart.h"
 
 /*******************************************************************
  *              GLOBAL VARIABLES, AND STORAGE
@@ -801,13 +802,15 @@ void get_next_command() {
     // Get the number of bytes of the command packet.
     // The first byte is the command ID and the following bytes
     // are the associated data bytes
-    if ((packet_size = getchar_timeout_us(0)) == PICO_ERROR_TIMEOUT) {
+    packet_size = getchar_timeout_us(100);
+    if (packet_size == PICO_ERROR_TIMEOUT) {
         // no data, let the main loop continue to run to handle inputs
         return;
     } else {
         // get the rest of the packet
         for (int i = 0; i < packet_size; i++) {
-            if ((packet_data = (uint8_t) getchar_timeout_us(0)) == PICO_ERROR_TIMEOUT) {
+            packet_data = (uint8_t) getchar_timeout_us(100);
+            if (packet_data == PICO_ERROR_TIMEOUT) {
                 sleep_ms(1);
             }
             command_buffer[i] = packet_data;
@@ -1049,6 +1052,7 @@ void serial_write(const int *buffer, int num_of_bytes_to_send) {
 int main() {
     stdio_init_all();
     stdio_set_translate_crlf(&stdio_usb, false);
+//    stdio_set_translate_crlf(&stdio_uart, false);
     stdio_flush();
     //uint offset = pio_add_program(pio, &Telemetrix4RpiPico_program);
     //ws2812_init(pio, sm, offset, 28, 800000,
