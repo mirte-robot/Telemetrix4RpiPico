@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 set(CMAKE_CXX_STANDARD 14)
+
+set(PICO_SDK_FETCH_FROM_GIT on)
 include(pico_sdk_import.cmake)
 project(Telemetrix4RpiPico)
 pico_sdk_init()
