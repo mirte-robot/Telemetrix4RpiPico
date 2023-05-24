@@ -24,8 +24,6 @@
  *
  * DHT sensor support: https://github.com/raspberrypi/pico-examples/tree/master/gpio/dht_sensor
  *
- * HC-SR04 sensor support: https://github.com/GitJer/Some_RPI-Pico_stuff/tree/main/HCSR04
- *
  *************************************************************************/
 
 #pragma clang diagnostic push
