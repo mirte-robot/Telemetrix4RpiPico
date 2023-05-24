@@ -423,16 +423,16 @@ typedef struct analog_pin_descriptor {
 typedef struct hc_sr04_descriptor {
     uint trig_pin; // trigger pin
     uint echo_pin; // echo pin
-    /* for possible future use
-    int last_val_whole; // value on right side of decimal
-    int last_val_frac; // value on left side of decimal
-    */
+    uint32_t start_time;
+    uint32_t last_time_diff;
 } hc_sr04_descriptor;
 
 // this structure holds an index into the sonars array
 // and the sonars array
 typedef struct sonar_data {
     int next_sonar_index;
+    repeating_timer_t trigger_timer;
+    uint32_t trigger_mask;
     hc_sr04_descriptor sonars[MAX_SONARS];
 }sonar_data;
 
@@ -447,7 +447,7 @@ typedef struct dht_descriptor {
 } dht_descriptor;
 
 // this structure holds an index into the dht array
-// and the sonars array
+// and the dhts array
 typedef struct dht_data {
     int next_dht_index;
     dht_descriptor dhts[MAX_DHTS];
