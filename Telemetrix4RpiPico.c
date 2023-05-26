@@ -74,7 +74,7 @@ uint8_t pixel_buffer[MAXIMUM_NUM_NEOPIXELS][3];
 uint actual_number_of_pixels;
 
 // scan delay
-uint8_t scan_delay = 0;
+uint8_t scan_delay = 10;
 
 static inline void put_pixel(uint32_t pixel_grb)
 {
