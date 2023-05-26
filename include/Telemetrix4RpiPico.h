@@ -101,8 +101,7 @@ extern void set_format_spi();
 
 extern void set_scan_delay();
 
-
-
+void encoder_new();
 
 /*********************************************************
  *                       COMMAND DEFINES
@@ -117,7 +116,7 @@ extern void set_scan_delay();
 #define PWM_WRITE 3
 #define MODIFY_REPORTING 4 // mode(all, analog, or digital), pin, enable or disable
 #define GET_FIRMWARE_VERSION 5
-#define GET_PICO_UNIQUE_ID  6
+#define GET_PICO_UNIQUE_ID 6
 #define SERVO_ATTACH 7 // unused
 #define SERVO_WRITE 8  // unused
 #define SERVO_DETACH 9 // unused
@@ -140,7 +139,8 @@ extern void set_scan_delay();
 #define SPI_READ_BLOCKING 26
 #define SPI_SET_FORMAT 27
 #define SPI_CS_CONTROL 28
-
+#define SET_SCAN_DELAY 29
+#define ENCODER_NEW 30
 /*****************************************************
  *                  MESSAGE OFFSETS
  ***************************************************/
@@ -250,7 +250,6 @@ extern void set_scan_delay();
 #define I2C_REPORT_READ_REGISTER 4
 #define I2C_REPORT_READ_NUMBER_DATA_BYTES 5
 
-
 #define I2C_ERROR_REPORT_LENGTH 4
 #define I2C_ERROR_REPORT_NUM_OF_BYTE_TO_SEND 5
 
@@ -265,7 +264,6 @@ extern void set_scan_delay();
 
 // scan delay buffer offsets
 #define SCAN_DELAY 1
-
 
 // init neopixels
 // command offsets
@@ -318,6 +316,24 @@ extern void set_scan_delay();
 /* maximum dht timings */
 const uint DHT_MAX_TIMINGS = 85;
 
+// encoder init
+#define ENCODER_TYPE 1
+#define ENCODER_PIN_A 2
+#define ENCODER_PIN_B 3
+
+// Max encoder devices
+#define MAX_ENCODERS 4
+
+typedef enum
+{
+    SINGLE = 1,
+    QUADRATURE = 2
+} ENCODER_TYPES;
+
+// encoder reports are identified by pin A
+#define ENCODER_REPORT_PIN_A 2
+#define ENCODER_REPORT_STEP 3
+
 /*********************** REPORTING BUFFER OFFSETS ******************/
 // loopback buffer offset for data being looped back
 #define LOOP_BACK_DATA 2
@@ -330,7 +346,6 @@ const uint DHT_MAX_TIMINGS = 85;
 // digital input report buffer offsets
 #define DIGITAL_INPUT_GPIO_PIN 2
 #define DIGITAL_INPUT_GPIO_VALUE 3
-
 
 // analog input report buffer offsets
 #define ANALOG_INPUT_GPIO_PIN 2
@@ -378,6 +393,7 @@ const uint DHT_MAX_TIMINGS = 85;
 #define SONAR_DISTANCE 11
 #define DHT_REPORT 12
 #define SPI_REPORT 13
+#define ENCODER_REPORT 14
 #define DEBUG_PRINT 99
 
 /***************************************************************
@@ -400,27 +416,29 @@ const uint DHT_MAX_TIMINGS = 85;
 // maximum length of a command packet in bytes
 #define MAX_COMMAND_LENGTH 30
 
-
 // Indicator that no i2c register is being specified in the command
 #define I2C_NO_REGISTER_SPECIFIED 254
 
 // a descriptor for digital pins
-typedef struct {
+typedef struct
+{
     uint pin_number;
     uint pin_mode;
     uint reporting_enabled; // If true, then send reports if an input pin
-    int last_value;        // Last value read for input mode
+    int last_value;         // Last value read for input mode
 } pin_descriptor;
 
 // a descriptor for analog pins
-typedef struct analog_pin_descriptor {
+typedef struct analog_pin_descriptor
+{
     uint reporting_enabled; // If true, then send reports if an input pin
     int last_value;         // Last value read for input mode
     int differential;       // difference between current and last value needed
 } analog_pin_descriptor;
 
 // This structure describes an HC-SR04 type device
-typedef struct hc_sr04_descriptor {
+typedef struct hc_sr04_descriptor
+{
     uint trig_pin; // trigger pin
     uint echo_pin; // echo pin
     uint32_t start_time;
@@ -429,15 +447,17 @@ typedef struct hc_sr04_descriptor {
 
 // this structure holds an index into the sonars array
 // and the sonars array
-typedef struct sonar_data {
+typedef struct sonar_data
+{
     int next_sonar_index;
     repeating_timer_t trigger_timer;
     uint32_t trigger_mask;
     hc_sr04_descriptor sonars[MAX_SONARS];
-}sonar_data;
+} sonar_data;
 
 // this structure describes a DHT type device
-typedef struct dht_descriptor {
+typedef struct dht_descriptor
+{
     uint data_pin; // data pin
     absolute_time_t previous_time;
     /* for possible future use
@@ -448,13 +468,32 @@ typedef struct dht_descriptor {
 
 // this structure holds an index into the dht array
 // and the dhts array
-typedef struct dht_data {
+typedef struct dht_data
+{
     int next_dht_index;
     dht_descriptor dhts[MAX_DHTS];
-}dht_data;
+} dht_data;
 
-typedef struct {
+// encoder type
+typedef struct
+{
+    ENCODER_TYPES type;
+    int A;
+    int B;
+    int8_t step;
+    int last_state;
+} encoder_t;
+
+typedef struct
+{
+    int next_encoder_index;
+    repeating_timer_t trigger_timer;
+    encoder_t encoders[MAX_ENCODERS];
+} encoder_data;
+encoder_data encoders;
+typedef struct
+{
     // a pointer to the command processing function
     void (*command_func)(void);
 } command_descriptor;
-#endif //TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
+#endif // TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
