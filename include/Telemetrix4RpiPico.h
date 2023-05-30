@@ -354,8 +354,9 @@ typedef enum
 
 // sonar report buffer offsets
 #define SONAR_TRIG_PIN 2
-#define CM_WHOLE_VALUE 3
-#define CM_FRAC_VALUE 4
+#define M_WHOLE_VALUE 3
+#define CM_WHOLE_VALUE 4
+#define CM_FRAC_VALUE 5
 
 // dht report buffer offset
 #define DHT_REPORT_PIN 2

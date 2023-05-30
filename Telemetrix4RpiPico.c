@@ -125,7 +125,7 @@ int digital_input_report_message[] = {3, DIGITAL_REPORT, 0, 0};
 int analog_input_report_message[] = {4, ANALOG_REPORT, 0, 0, 0};
 
 // sonar report message
-int sonar_report_message[] = {4, SONAR_DISTANCE, 0, 0, 0};
+int sonar_report_message[] = {5, SONAR_DISTANCE, SONAR_TRIG_PIN, M_WHOLE_VALUE, CM_WHOLE_VALUE, CM_FRAC_VALUE};
 
 // dht report message
 int dht_report_message[] = {
@@ -1065,7 +1065,8 @@ void get_next_command()
                 }
                 sleep_ms(1);
             }
-            if(packet_data == PICO_ERROR_TIMEOUT) {
+            if (packet_data == PICO_ERROR_TIMEOUT)
+            {
                 return; // failed message
             }
             command_buffer[i] = (uint8_t)packet_data;
@@ -1172,11 +1173,16 @@ void scan_sonars()
         {
             sonar->last_time_diff = 0; // HC-SR04 has max range of 4 / 5m, with a timeout pulse longer than 35ms
         }
-        int mm = (sonar->last_time_diff) / (58.0 / 100);
+        // 0.1mm increments
+        int distance = (sonar->last_time_diff) / (58.0 / 100);
+
         sonar_report_message[SONAR_TRIG_PIN] = (uint8_t)sonar->trig_pin;
-        sonar_report_message[CM_WHOLE_VALUE] = mm / 100;
-        sonar_report_message[CM_FRAC_VALUE] = mm % 100;
-        serial_write(sonar_report_message, 5);
+
+        sonar_report_message[M_WHOLE_VALUE] = distance / 10000;
+        sonar_report_message[CM_WHOLE_VALUE] = (distance / 100) % 100;
+        sonar_report_message[CM_FRAC_VALUE] = distance % 100;
+
+        serial_write(sonar_report_message, 6);
     }
 }
 
