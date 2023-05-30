@@ -750,7 +750,7 @@ bool encoder_callback(repeating_timer_t *timer)
 bool create_encoder_timer()
 {
     int hz = 100;
-    if (!add_repeating_timer_us(-1000000 / hz, encoder_callback, NULL, &timer))
+    if (!add_repeating_timer_us(-1000000 / hz, encoder_callback, NULL, &encoders.trigger_timer))
     {
         printf("Failed to add timer\n");
         return false;
@@ -824,7 +824,7 @@ void sonar_new()
         // Init timer
         int hz = 10;
         // negative timeout means exact delay (rather than delay between callbacks)
-        if (!add_repeating_timer_us(-1000000 / hz, sonar_timer_callback, NULL, &timer))
+        if (!add_repeating_timer_us(-1000000 / hz, sonar_timer_callback, NULL, &the_hc_sr04s.trigger_timer))
         {
             printf("Failed to add timer\n");
             return;
