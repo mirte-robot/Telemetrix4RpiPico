@@ -707,6 +707,7 @@ void init_single_encoder(int A, encoder_t *enc)
 }
 bool encoder_callback(repeating_timer_t *timer)
 {
+    (void)timer;
     if (encoders.next_encoder_index == 0)
     {
         return true;
@@ -785,7 +786,7 @@ void encoder_new()
     }
     encoders.next_encoder_index++;
 }
-    int encoder_report_message[] = {3, ENCODER_REPORT, 0, 0};
+int encoder_report_message[] = {3, ENCODER_REPORT, 0, 0};
 
 void scan_encoders()
 {
@@ -847,6 +848,7 @@ void sonar_new()
 
 bool repeating_timer_callback(struct repeating_timer *t)
 {
+    (void)t;
     // printf("Repeat at %lld\n", time_us_64());
     timer_fired = true;
     return true;
@@ -1033,7 +1035,7 @@ void servo_detach() {}
 void get_next_command()
 {
     int packet_size;
-    uint8_t packet_data;
+    int packet_data;
     command_descriptor command_entry;
 
     // clear the command buffer for the new incoming command
@@ -1053,12 +1055,20 @@ void get_next_command()
         // get the rest of the packet
         for (int i = 0; i < packet_size; i++)
         {
-            packet_data = (uint8_t)getchar_timeout_us(100);
-            if (packet_data == PICO_ERROR_TIMEOUT)
+            for (int retries = 10; retries > 0; retries--)
             {
+                packet_data = getchar_timeout_us(100);
+
+                if (packet_data != PICO_ERROR_TIMEOUT)
+                {
+                    break;
+                }
                 sleep_ms(1);
             }
-            command_buffer[i] = packet_data;
+            if(packet_data == PICO_ERROR_TIMEOUT) {
+                return; // failed message
+            }
+            command_buffer[i] = (uint8_t)packet_data;
         }
 
         // the first byte is the command ID.
@@ -1293,7 +1303,7 @@ int main()
 {
     stdio_init_all();
     stdio_set_translate_crlf(&stdio_usb, false);
-    //    stdio_set_translate_crlf(&stdio_uart, false);
+    stdio_set_translate_crlf(&stdio_uart, false);
     stdio_flush();
     // uint offset = pio_add_program(pio, &Telemetrix4RpiPico_program);
     // ws2812_init(pio, sm, offset, 28, 800000,
