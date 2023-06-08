@@ -1176,11 +1176,9 @@ void scan_sonars()
         int distance = (sonar->last_time_diff) / (58.0 / 100);
 
         sonar_report_message[SONAR_TRIG_PIN] = (uint8_t)sonar->trig_pin;
-
         sonar_report_message[M_WHOLE_VALUE] = distance / 10000;
         sonar_report_message[CM_WHOLE_VALUE] = (distance / 100) % 100;
         sonar_report_message[CM_FRAC_VALUE] = distance % 100;
-
         serial_write(sonar_report_message, 6);
     }
 }
