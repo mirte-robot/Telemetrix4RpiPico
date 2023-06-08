@@ -563,8 +563,8 @@ void i2c_write()
     int i2c_sdk_call_return_value = i2c_write_blocking_until(i2c, (uint8_t)command_buffer[I2C_DEVICE_ADDRESS],
                                                        &(command_buffer[I2C_WRITE_BYTES_TO_WRITE]),
                                                        command_buffer[I2C_WRITE_NUMBER_OF_BYTES],
-                                                       (bool)command_buffer[I2C_WRITE_NO_STOP_FLAG], make_timeout_time_ms(100));
-    if (i2c_sdk_call_return_value != PICO_OK)
+                                                       (bool)command_buffer[I2C_WRITE_NO_STOP_FLAG], make_timeout_time_ms(50));
+    if (i2c_sdk_call_return_value < 0) // write returns # of written bytes
     {
         i2c_report_message[I2C_PACKET_LENGTH] = I2C_ERROR_REPORT_LENGTH; // length of the packet
         i2c_report_message[I2C_REPORT_ID] = I2C_WRITE_FAILED;            // report ID
