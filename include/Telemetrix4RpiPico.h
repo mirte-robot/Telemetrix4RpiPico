@@ -481,7 +481,7 @@ typedef struct
     ENCODER_TYPES type;
     int A;
     int B;
-    int8_t step;
+    int step;
     int last_state;
 } encoder_t;
 

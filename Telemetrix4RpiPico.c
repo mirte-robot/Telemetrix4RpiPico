@@ -561,9 +561,9 @@ void i2c_write()
     }
 
     int i2c_sdk_call_return_value = i2c_write_blocking_until(i2c, (uint8_t)command_buffer[I2C_DEVICE_ADDRESS],
-                                                       &(command_buffer[I2C_WRITE_BYTES_TO_WRITE]),
-                                                       command_buffer[I2C_WRITE_NUMBER_OF_BYTES],
-                                                       (bool)command_buffer[I2C_WRITE_NO_STOP_FLAG], make_timeout_time_ms(50));
+                                                             &(command_buffer[I2C_WRITE_BYTES_TO_WRITE]),
+                                                             command_buffer[I2C_WRITE_NUMBER_OF_BYTES],
+                                                             (bool)command_buffer[I2C_WRITE_NO_STOP_FLAG], make_timeout_time_ms(50));
     if (i2c_sdk_call_return_value < 0) // write returns # of written bytes
     {
         i2c_report_message[I2C_PACKET_LENGTH] = I2C_ERROR_REPORT_LENGTH; // length of the packet
@@ -684,22 +684,20 @@ void init_quadrature_encoder(int A, int B, encoder_t *enc)
 {
     gpio_init(A);
     gpio_set_dir(A, GPIO_IN);
-    gpio_set_pulls(A, false, true);
-    // gpio_set_irq_enabled_with_callback(A, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &encoderA_callback);
+    gpio_set_pulls(A, false, false);
     gpio_init(B);
     gpio_set_dir(B, GPIO_IN);
-    gpio_set_pulls(B, false, true);
+    gpio_set_pulls(B, false, false);
 
     enc->A = A;
     enc->B = B;
     enc->type = QUADRATURE;
-    // gpio_set_irq_enabled_with_callback(B, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &encoderB_callback);
 }
 void init_single_encoder(int A, encoder_t *enc)
 {
     gpio_init(A);
     gpio_set_dir(A, GPIO_IN);
-    gpio_set_pulls(A, false, true);
+    gpio_set_pulls(A, false, false);
 
     enc->A = A;
     enc->type = SINGLE;
@@ -748,7 +746,13 @@ bool encoder_callback(repeating_timer_t *timer)
 
 bool create_encoder_timer()
 {
-    int hz = 100;
+    int hz = 2000;
+    /* blue encoder motor:
+    - 110 rpm = ~2 rot/s
+    - 540 steps/rot
+    - >1000 steps/s
+    - requires at least 1 scan per step
+*/
     if (!add_repeating_timer_us(-1000000 / hz, encoder_callback, NULL, &encoders.trigger_timer))
     {
         printf("Failed to add timer\n");
