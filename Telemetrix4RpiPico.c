@@ -565,10 +565,12 @@ void i2c_write()
                                                              command_buffer[I2C_WRITE_NUMBER_OF_BYTES],
                                                              (bool)command_buffer[I2C_WRITE_NO_STOP_FLAG], make_timeout_time_ms(50));
 
-        i2c_report_message[I2C_PACKET_LENGTH] = I2C_ERROR_REPORT_LENGTH; // length of the packet
-    i2c_report_message[I2C_REPORT_ID] = i2c_sdk_call_return_value;                // bytes written or error
+    i2c_report_message[I2C_PACKET_LENGTH] = 4;            // length of the packet
+    i2c_report_message[I2C_REPORT_ID] = I2C_WRITE_REPORT; // bytes written or error
     i2c_report_message[I2C_REPORT_PORT] = command_buffer[I2C_PORT];
-    i2c_report_message[I2C_REPORT_DEVICE_ADDRESS] = command_buffer[I2C_DEVICE_ADDRESS];
+    i2c_report_message[I2C_WRITE_MESSAGE_ID] = command_buffer[I2C_WRITE_MESSAGE_ID];
+
+    i2c_report_message[4] = i2c_sdk_call_return_value;
 
     serial_write(i2c_report_message, I2C_ERROR_REPORT_NUM_OF_BYTE_TO_SEND);
 }
@@ -1349,18 +1351,22 @@ int main()
     watchdog_enable(1000, 1); // Add watchdog requiring trigger every 1s
 
     // infinite loop
+    uint32_t last_scan = 0;
     while (true)
     {
         watchdog_update();
         get_next_command();
         if (!stop_reports)
         {
-            scan_digital_inputs();
-            scan_analog_inputs();
-            scan_sonars();
-            scan_dhts();
-            scan_encoders();
-            sleep_ms(scan_delay);
+            if (time_us_32() - last_scan >= scan_delay)
+            {
+                last_scan = time_us_32();
+                scan_digital_inputs();
+                scan_analog_inputs();
+                scan_sonars();
+                scan_dhts();
+                scan_encoders();
+            }
         }
     }
 }
