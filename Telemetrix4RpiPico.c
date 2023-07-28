@@ -461,9 +461,10 @@ void i2c_read()
     // 1 = I2C_READ_REPORT
     // 2 = The i2c port - 0 or 1
     // 3 = i2c device address
-    // 4 = i2c read register
-    // 5 = number of bytes read
-    // 6... = bytes read
+    // 4 = message_id
+    // 5 = i2c read register
+    // 6 = number of bytes read
+    // 7... = bytes read
 
     // length of i2c report packet
     int num_of_bytes_to_send = I2C_READ_START_OF_DATA + command_buffer[I2C_READ_LENGTH];
@@ -473,6 +474,7 @@ void i2c_read()
     // This gets around casting.
     uint8_t data_from_device[command_buffer[I2C_READ_LENGTH]];
 
+    uint8_t message_id = command_buffer[I2C_READ_MESSAGE_ID];
     // return value from write and read i2c sdk commands
     int i2c_sdk_call_return_value;
 
@@ -541,6 +543,8 @@ void i2c_read()
 
     // number of bytes read from i2c device
     i2c_report_message[I2C_REPORT_READ_NUMBER_DATA_BYTES] = (uint8_t)i2c_sdk_call_return_value;
+
+    i2c_report_message[I2C_READ_MESSAGE_ID] = message_id;
 
     serial_write((int *)i2c_report_message, num_of_bytes_to_send);
 }
