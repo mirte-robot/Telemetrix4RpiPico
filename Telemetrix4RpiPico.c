@@ -125,7 +125,7 @@ int digital_input_report_message[] = {3, DIGITAL_REPORT, 0, 0};
 int analog_input_report_message[] = {4, ANALOG_REPORT, 0, 0, 0};
 
 // sonar report message
-int sonar_report_message[] = {5, SONAR_DISTANCE, SONAR_TRIG_PIN, M_WHOLE_VALUE, CM_WHOLE_VALUE, CM_FRAC_VALUE};
+int sonar_report_message[] = {5, SONAR_DISTANCE, SONAR_TRIG_PIN, M_WHOLE_VALUE, CM_WHOLE_VALUE};
 
 // dht report message
 int dht_report_message[] = {
@@ -1185,8 +1185,7 @@ void scan_sonars()
         sonar_report_message[SONAR_TRIG_PIN] = (uint8_t)sonar->trig_pin;
         sonar_report_message[M_WHOLE_VALUE] = distance / 10000;
         sonar_report_message[CM_WHOLE_VALUE] = (distance / 100) % 100;
-        sonar_report_message[CM_FRAC_VALUE] = distance % 100;
-        serial_write(sonar_report_message, 6);
+        serial_write(sonar_report_message, 5);
     }
 }
 
