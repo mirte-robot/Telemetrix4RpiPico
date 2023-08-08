@@ -125,7 +125,7 @@ int digital_input_report_message[] = {3, DIGITAL_REPORT, 0, 0};
 int analog_input_report_message[] = {4, ANALOG_REPORT, 0, 0, 0};
 
 // sonar report message
-int sonar_report_message[] = {5, SONAR_DISTANCE, SONAR_TRIG_PIN, M_WHOLE_VALUE, CM_WHOLE_VALUE};
+int sonar_report_message[] = {4, SONAR_DISTANCE, SONAR_TRIG_PIN, M_WHOLE_VALUE, CM_WHOLE_VALUE};
 
 // dht report message
 int dht_report_message[] = {
