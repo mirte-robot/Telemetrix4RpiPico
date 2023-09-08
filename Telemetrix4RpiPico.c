@@ -125,7 +125,7 @@ int digital_input_report_message[] = {3, DIGITAL_REPORT, 0, 0};
 int analog_input_report_message[] = {4, ANALOG_REPORT, 0, 0, 0};
 
 // sonar report message
-int sonar_report_message[] = {5, SONAR_DISTANCE, SONAR_TRIG_PIN, M_WHOLE_VALUE, CM_WHOLE_VALUE, CM_FRAC_VALUE};
+int sonar_report_message[] = {4, SONAR_DISTANCE, SONAR_TRIG_PIN, M_WHOLE_VALUE, CM_WHOLE_VALUE};
 
 // dht report message
 int dht_report_message[] = {
@@ -461,9 +461,10 @@ void i2c_read()
     // 1 = I2C_READ_REPORT
     // 2 = The i2c port - 0 or 1
     // 3 = i2c device address
-    // 4 = i2c read register
-    // 5 = number of bytes read
-    // 6... = bytes read
+    // 4 = message_id
+    // 5 = i2c read register
+    // 6 = number of bytes read
+    // 7... = bytes read
 
     // length of i2c report packet
     int num_of_bytes_to_send = I2C_READ_START_OF_DATA + command_buffer[I2C_READ_LENGTH];
@@ -473,6 +474,7 @@ void i2c_read()
     // This gets around casting.
     uint8_t data_from_device[command_buffer[I2C_READ_LENGTH]];
 
+    uint8_t message_id = command_buffer[I2C_READ_MESSAGE_ID];
     // return value from write and read i2c sdk commands
     int i2c_sdk_call_return_value;
 
@@ -542,6 +544,8 @@ void i2c_read()
     // number of bytes read from i2c device
     i2c_report_message[I2C_REPORT_READ_NUMBER_DATA_BYTES] = (uint8_t)i2c_sdk_call_return_value;
 
+    i2c_report_message[I2C_READ_MESSAGE_ID] = message_id;
+
     serial_write((int *)i2c_report_message, num_of_bytes_to_send);
 }
 
@@ -564,16 +568,15 @@ void i2c_write()
                                                              &(command_buffer[I2C_WRITE_BYTES_TO_WRITE]),
                                                              command_buffer[I2C_WRITE_NUMBER_OF_BYTES],
                                                              (bool)command_buffer[I2C_WRITE_NO_STOP_FLAG], make_timeout_time_ms(50));
-    if (i2c_sdk_call_return_value < 0) // write returns # of written bytes
-    {
-        i2c_report_message[I2C_PACKET_LENGTH] = I2C_ERROR_REPORT_LENGTH; // length of the packet
-        i2c_report_message[I2C_REPORT_ID] = I2C_WRITE_FAILED;            // report ID
-        i2c_report_message[I2C_REPORT_PORT] = command_buffer[I2C_PORT];
-        i2c_report_message[I2C_REPORT_DEVICE_ADDRESS] = command_buffer[I2C_DEVICE_ADDRESS];
 
-        serial_write(i2c_report_message, I2C_ERROR_REPORT_NUM_OF_BYTE_TO_SEND);
-        return;
-    }
+    i2c_report_message[I2C_PACKET_LENGTH] = 4;            // length of the packet
+    i2c_report_message[I2C_REPORT_ID] = I2C_WRITE_REPORT; // bytes written or error
+    i2c_report_message[I2C_REPORT_PORT] = command_buffer[I2C_PORT];
+    i2c_report_message[I2C_WRITE_MESSAGE_ID] = command_buffer[I2C_WRITE_MESSAGE_ID];
+
+    i2c_report_message[4] = i2c_sdk_call_return_value;
+
+    serial_write(i2c_report_message, I2C_ERROR_REPORT_NUM_OF_BYTE_TO_SEND);
 }
 
 void init_neo_pixels()
@@ -1182,8 +1185,7 @@ void scan_sonars()
         sonar_report_message[SONAR_TRIG_PIN] = (uint8_t)sonar->trig_pin;
         sonar_report_message[M_WHOLE_VALUE] = distance / 10000;
         sonar_report_message[CM_WHOLE_VALUE] = (distance / 100) % 100;
-        sonar_report_message[CM_FRAC_VALUE] = distance % 100;
-        serial_write(sonar_report_message, 6);
+        serial_write(sonar_report_message, 5);
     }
 }
 
@@ -1352,18 +1354,23 @@ int main()
     watchdog_enable(1000, 1); // Add watchdog requiring trigger every 1s
 
     // infinite loop
+    uint32_t last_scan = 0;
     while (true)
     {
         watchdog_update();
         get_next_command();
+        
         if (!stop_reports)
         {
-            scan_digital_inputs();
-            scan_analog_inputs();
-            scan_sonars();
-            scan_dhts();
-            scan_encoders();
-            sleep_ms(scan_delay);
+            if (time_us_32() - last_scan >= (scan_delay*1000))
+            {
+                last_scan = time_us_32();
+                scan_digital_inputs();
+                scan_analog_inputs();
+                scan_sonars();
+                scan_dhts();
+                scan_encoders();
+            }
         }
     }
 }
