@@ -1359,7 +1359,7 @@ int main()
     {
         watchdog_update();
         get_next_command();
-        
+         
         if (!stop_reports)
         {
             if (time_us_32() - last_scan >= (scan_delay*1000))
