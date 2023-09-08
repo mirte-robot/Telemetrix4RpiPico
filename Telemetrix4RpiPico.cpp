@@ -26,9 +26,6 @@
  *
  *************************************************************************/
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
 #include "include/Telemetrix4RpiPico.h"
 // #include "pico/stdio_uart.h"
 
@@ -522,7 +519,7 @@ void i2c_read()
     }
 
     // copy the data returned from i2c device into the report message buffer
-    for (uint i = 0; i < i2c_sdk_call_return_value; i++)
+    for (int i = 0; i < i2c_sdk_call_return_value; i++)
     {
         i2c_report_message[i + I2C_READ_START_OF_DATA] = data_from_device[i];
     }
@@ -589,7 +586,7 @@ void init_neo_pixels()
     actual_number_of_pixels = command_buffer[NP_NUMBER_OF_PIXELS];
 
     // set the pixels to the fill color
-    for (int i = 0; i < actual_number_of_pixels; i++)
+    for (uint i = 0; i < actual_number_of_pixels; i++)
     {
         pixel_buffer[i][RED] = command_buffer[NP_RED_FILL];
         pixel_buffer[i][GREEN] = command_buffer[NP_GREEN_FILL];
@@ -1374,5 +1371,3 @@ int main()
         }
     }
 }
-
-#pragma clang diagnostic pop

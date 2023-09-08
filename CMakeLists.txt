@@ -8,7 +8,7 @@ pico_sdk_init()
 add_executable(Telemetrix4RpiPico
         Telemetrix4RpiPico.cpp
 )
-
+# target_compile_options(Telemetrix4RpiPico PRIVATE -Wall -Wextra -Wpedantic -Werror)
 pico_generate_pio_header(Telemetrix4RpiPico ${CMAKE_CURRENT_LIST_DIR}/Telemetrix4RpiPico.pio)
 pico_enable_stdio_usb(Telemetrix4RpiPico 1)
 pico_enable_stdio_uart(Telemetrix4RpiPico 1)

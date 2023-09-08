@@ -5,8 +5,6 @@
 #ifndef TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 #define TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
