@@ -6,7 +6,7 @@ include(pico_sdk_import.cmake)
 project(Telemetrix4RpiPico)
 pico_sdk_init()
 add_executable(Telemetrix4RpiPico
-        Telemetrix4RpiPico.c
+        Telemetrix4RpiPico.cpp
 )
 
 pico_generate_pio_header(Telemetrix4RpiPico ${CMAKE_CURRENT_LIST_DIR}/Telemetrix4RpiPico.pio)

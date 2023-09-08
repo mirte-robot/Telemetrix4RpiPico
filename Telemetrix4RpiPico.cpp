@@ -263,7 +263,7 @@ void set_pin_mode()
         gpio_init(pin);
         gpio_set_dir(pin, GPIO_OUT);
         break;
-    case PWM_OUTPUT:
+    case PWM_OUTPUT: {
         /* Here we will set the operating frequency to be 50 hz to
            simplify support PWM as well as servo support.
         */
@@ -287,7 +287,7 @@ void set_pin_mode()
         pwm_set_enabled(slice_num, true); // let's go!
         gpio_set_function(pin, GPIO_FUNC_PWM);
         break;
-
+    }
     case ANALOG_INPUT:
         // if the temp sensor was selected, then turn it on
         if (pin == ADC_TEMPERATURE_REGISTER)
@@ -766,7 +766,7 @@ bool create_encoder_timer()
 
 void encoder_new()
 {
-    ENCODER_TYPES type = command_buffer[ENCODER_TYPE];
+    ENCODER_TYPES type = (ENCODER_TYPES) command_buffer[ENCODER_TYPE];
     uint pin_a = command_buffer[ENCODER_PIN_A];
     uint pin_b = command_buffer[ENCODER_PIN_B]; // both cases will have a pin B
     if (encoders.next_encoder_index == 0)
@@ -1006,8 +1006,8 @@ void set_format_spi()
 {
     spi_inst_t *spi_port;
     uint data_bits = command_buffer[SPI_NUMBER_OF_BITS];
-    spi_cpol_t cpol = command_buffer[SPI_CLOCK_PHASE];
-    spi_cpha_t cpha = command_buffer[SPI_CLOCK_POLARITY];
+    spi_cpol_t cpol = (spi_cpol_t) command_buffer[SPI_CLOCK_PHASE];
+    spi_cpha_t cpha = (spi_cpha_t) command_buffer[SPI_CLOCK_POLARITY];
 
     if (command_buffer[SPI_PORT] == 0)
     {
@@ -1017,7 +1017,7 @@ void set_format_spi()
     {
         spi_port = spi1;
     }
-    spi_set_format(spi_port, data_bits, cpol, cpha, 1);
+    spi_set_format(spi_port, data_bits, cpol, cpha, (spi_order_t)1);
 }
 
 /******************* FOR FUTURE RELEASES **********************/
