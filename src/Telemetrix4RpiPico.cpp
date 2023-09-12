@@ -1167,6 +1167,7 @@ void ADXL345_Sensor::readSensor() {
 }
 
 VEML6040_Sensor::VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
+  this->i2c_port = settings[0];
   this->init_sequence();
 }
 
