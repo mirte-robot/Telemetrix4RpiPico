@@ -512,14 +512,14 @@ public:
 const int SENSORS_MAX_SETTINGS_A = 6;
 class GPS_Sensor : public Sensor {
 public:
-  GPS_Sensor(int num, uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  GPS_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
 
 private:
 };
 class ADXL345_Sensor : public Sensor {
 public:
-  ADXL345_Sensor(int num, uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  ADXL345_Sensor( uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
 
 private:
@@ -530,13 +530,8 @@ private:
 };
 void sensor_new();
 void addSensor(uint8_t data[], size_t len);
+void readSensors();
 void serial_write(std::vector<uint8_t> data);
-struct Sensor_new_command {
-  SENSOR_TYPES type;
-  uint8_t sensor_number;
-  uint8_t settings[SENSORS_MAX_SETTINGS_A]; // max length of sensor settings
-};
-static_assert(sizeof(Sensor_new_command) == SENSORS_MAX_SETTINGS_A + 2);
 std::vector<Sensor *> sensors;
 void reportBytes(std::vector<uint8_t>);
 
