@@ -5,21 +5,22 @@
 #ifndef TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 #define TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 
+#include "Telemetrix4RpiPico.pio.h"
+#include "hardware/adc.h"
+#include "hardware/clocks.h"
+#include "hardware/i2c.h"
+#include "hardware/pio.h"
+#include "hardware/pwm.h"
+#include "hardware/spi.h"
+#include "hardware/watchdog.h"
+#include "math.h"
+#include "pico/stdlib.h"
+#include "pico/unique_id.h"
+#include <array>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "pico/stdlib.h"
-#include "hardware/pwm.h"
-#include "pico/unique_id.h"
-#include "hardware/watchdog.h"
-#include "hardware/adc.h"
-#include "hardware/i2c.h"
-#include "hardware/pio.h"
-#include "hardware/clocks.h"
-#include "hardware/spi.h"
-#include "Telemetrix4RpiPico.pio.h"
-#include "math.h"
-
+#include <vector>
 /************************** FORWARD REFERENCES ***********************
 We define all functions here as extern to provide allow
 forward referencing.
@@ -112,7 +113,8 @@ void encoder_new();
 #define SET_PIN_MODE 1
 #define DIGITAL_WRITE 2
 #define PWM_WRITE 3
-#define MODIFY_REPORTING 4 // mode(all, analog, or digital), pin, enable or disable
+#define MODIFY_REPORTING                                                       \
+  4 // mode(all, analog, or digital), pin, enable or disable
 #define GET_FIRMWARE_VERSION 5
 #define GET_PICO_UNIQUE_ID 6
 #define SERVO_ATTACH 7 // unused
@@ -139,6 +141,7 @@ void encoder_new();
 #define SPI_CS_CONTROL 28
 #define SET_SCAN_DELAY 29
 #define ENCODER_NEW 30
+const int SENSOR_NEW = 31;
 /*****************************************************
  *                  MESSAGE OFFSETS
  ***************************************************/
@@ -324,11 +327,7 @@ const uint DHT_MAX_TIMINGS = 85;
 // Max encoder devices
 #define MAX_ENCODERS 4
 
-typedef enum
-{
-    SINGLE = 1,
-    QUADRATURE = 2
-} ENCODER_TYPES;
+typedef enum { SINGLE = 1, QUADRATURE = 2 } ENCODER_TYPES;
 
 // encoder reports are identified by pin A
 #define ENCODER_REPORT_PIN_A 2
@@ -395,7 +394,7 @@ typedef enum
 #define SPI_REPORT 13
 #define ENCODER_REPORT 14
 #define DEBUG_PRINT 99
-
+const int SENSOR_REPORT = 20;
 /***************************************************************
  *          INPUT PIN REPORTING CONTROL SUB COMMANDS
  ***************************************************************/
@@ -420,80 +419,125 @@ typedef enum
 #define I2C_NO_REGISTER_SPECIFIED 254
 
 // a descriptor for digital pins
-typedef struct
-{
-    uint pin_number;
-    uint pin_mode;
-    uint reporting_enabled; // If true, then send reports if an input pin
-    int last_value;         // Last value read for input mode
+typedef struct {
+  uint pin_number;
+  uint pin_mode;
+  uint reporting_enabled; // If true, then send reports if an input pin
+  int last_value;         // Last value read for input mode
 } pin_descriptor;
 
 // a descriptor for analog pins
-typedef struct analog_pin_descriptor
-{
-    uint reporting_enabled; // If true, then send reports if an input pin
-    int last_value;         // Last value read for input mode
-    int differential;       // difference between current and last value needed
+typedef struct analog_pin_descriptor {
+  uint reporting_enabled; // If true, then send reports if an input pin
+  int last_value;         // Last value read for input mode
+  int differential;       // difference between current and last value needed
 } analog_pin_descriptor;
 
 // This structure describes an HC-SR04 type device
-typedef struct hc_sr04_descriptor
-{
-    uint trig_pin; // trigger pin
-    uint echo_pin; // echo pin
-    uint32_t start_time;
-    uint32_t last_time_diff;
+typedef struct hc_sr04_descriptor {
+  uint trig_pin; // trigger pin
+  uint echo_pin; // echo pin
+  uint32_t start_time;
+  uint32_t last_time_diff;
 } hc_sr04_descriptor;
 
 // this structure holds an index into the sonars array
 // and the sonars array
-typedef struct sonar_data
-{
-    int next_sonar_index;
-    repeating_timer_t trigger_timer;
-    uint32_t trigger_mask;
-    hc_sr04_descriptor sonars[MAX_SONARS];
+typedef struct sonar_data {
+  int next_sonar_index;
+  repeating_timer_t trigger_timer;
+  uint32_t trigger_mask;
+  hc_sr04_descriptor sonars[MAX_SONARS];
 } sonar_data;
 
 // this structure describes a DHT type device
-typedef struct dht_descriptor
-{
-    uint data_pin; // data pin
-    absolute_time_t previous_time;
-    /* for possible future use
-    int last_val_whole; // value on right side of decimal
-    int last_val_frac; // value on left side of decimal
-    */
+typedef struct dht_descriptor {
+  uint data_pin; // data pin
+  absolute_time_t previous_time;
+  /* for possible future use
+  int last_val_whole; // value on right side of decimal
+  int last_val_frac; // value on left side of decimal
+  */
 } dht_descriptor;
 
 // this structure holds an index into the dht array
 // and the dhts array
-typedef struct dht_data
-{
-    int next_dht_index;
-    dht_descriptor dhts[MAX_DHTS];
+typedef struct dht_data {
+  int next_dht_index;
+  dht_descriptor dhts[MAX_DHTS];
 } dht_data;
 
 // encoder type
-typedef struct
-{
-    ENCODER_TYPES type;
-    int A;
-    int B;
-    int8_t step;
-    int last_state;
+typedef struct {
+  ENCODER_TYPES type;
+  int A;
+  int B;
+  int8_t step;
+  int last_state;
 } encoder_t;
 
-typedef struct
-{
-    int next_encoder_index;
-    repeating_timer_t trigger_timer;
-    encoder_t encoders[MAX_ENCODERS];
+typedef struct {
+  int next_encoder_index;
+  repeating_timer_t trigger_timer;
+  encoder_t encoders[MAX_ENCODERS];
 } encoder_data;
 encoder_data encoders;
-typedef struct
-{
-    // a pointer to the command processing function
-    void (*command_func)(void);
+typedef struct {
+  // a pointer to the command processing function
+  void (*command_func)(void);
 } command_descriptor;
+
+/*****************************************************************************/
+/****SENSORS*/
+/*****************************************************************************/
+
+enum SENSOR_TYPES : uint8_t { // Max 255 sensors, but will always fit in a
+                              // single byte!
+  GPS = 0,
+  LOAD_CELL = 1,
+  MPU_9250 = 2,
+  TOF_VL53 = 3,
+  VEML6040 = 4, // Color sensor
+  ADXL345 = 5,  // 3 axis accel
+  MAX_SENSORS
+};
+class Sensor {
+public:
+  virtual void readSensor();
+  bool stop = false;
+  void writeSensorData(std::vector<uint8_t> data);
+  int num;
+  SENSOR_TYPES type = SENSOR_TYPES::MAX_SENSORS;
+};
+const int SENSORS_MAX_SETTINGS_A = 6;
+class GPS_Sensor : public Sensor {
+public:
+  GPS_Sensor(int num, uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+
+private:
+};
+class ADXL345_Sensor : public Sensor {
+public:
+  ADXL345_Sensor(int num, uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+
+private:
+  void init_sequence();
+  int num;
+  int i2c_port;
+  int i2c_addr = 83;
+};
+void sensor_new();
+void addSensor(uint8_t data[], size_t len);
+void serial_write(std::vector<uint8_t> data);
+struct Sensor_new_command {
+  SENSOR_TYPES type;
+  uint8_t sensor_number;
+  uint8_t settings[SENSORS_MAX_SETTINGS_A]; // max length of sensor settings
+};
+static_assert(sizeof(Sensor_new_command) == SENSORS_MAX_SETTINGS_A + 2);
+std::vector<Sensor *> sensors;
+void reportBytes(std::vector<uint8_t>);
+
 #endif // TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
