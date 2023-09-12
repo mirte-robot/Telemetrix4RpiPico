@@ -28,7 +28,7 @@
  *
  *************************************************************************/
 
-#include "include/Telemetrix4RpiPico.hpp"
+#include "Telemetrix4RpiPico.hpp"
 // #include "pico/stdio_uart.h"
 
 /*******************************************************************

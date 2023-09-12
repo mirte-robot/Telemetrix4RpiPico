@@ -6,10 +6,11 @@ include(pico_sdk_import.cmake)
 project(Telemetrix4RpiPico)
 pico_sdk_init()
 add_executable(Telemetrix4RpiPico
-        Telemetrix4RpiPico.cpp
+        src/Telemetrix4RpiPico.cpp
 )
+target_include_directories(Telemetrix4RpiPico PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/)
 # target_compile_options(Telemetrix4RpiPico PRIVATE -Wall -Wextra -Wpedantic -Werror)
-pico_generate_pio_header(Telemetrix4RpiPico ${CMAKE_CURRENT_LIST_DIR}/Telemetrix4RpiPico.pio)
+pico_generate_pio_header(Telemetrix4RpiPico ${CMAKE_CURRENT_LIST_DIR}/src/Telemetrix4RpiPico.pio)
 pico_enable_stdio_usb(Telemetrix4RpiPico 1)
 pico_enable_stdio_uart(Telemetrix4RpiPico 1)
 pico_add_extra_outputs(Telemetrix4RpiPico)
