@@ -1069,7 +1069,8 @@ void sensor_new() {
   const SENSOR_TYPES type = (SENSOR_TYPES)command_buffer[2];
   const uint8_t sensor_num = command_buffer[1];
   uint8_t sensor_data[SENSORS_MAX_SETTINGS_A];
-  std::copy(command_buffer + 3, command_buffer + 3 + SENSORS_MAX_SETTINGS_A, sensor_data);
+  std::copy(command_buffer + 3, command_buffer + 3 + SENSORS_MAX_SETTINGS_A,
+            sensor_data);
   if (type >= SENSOR_TYPES::MAX_SENSORS) {
     return;
   }
@@ -1078,7 +1079,7 @@ void sensor_new() {
   if (type == GPS) {
     sensor = new GPS_Sensor(sensor_data);
   } else if (type == SENSOR_TYPES::ADXL345) {
-    send_debug_info(5,92);
+    send_debug_info(5, 92);
     sensor = new ADXL345_Sensor(sensor_data);
   }
   sensor->type = type;
@@ -1088,12 +1089,12 @@ void sensor_new() {
 }
 
 void readSensors() {
-  for(auto& sensor: sensors) {
+  for (auto &sensor : sensors) {
     sensor->readSensor();
   }
 }
 
-GPS_Sensor::GPS_Sensor(  uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
+GPS_Sensor::GPS_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
   // TODO: read uart, forward to serial
 }
 void GPS_Sensor::readSensor() {
@@ -1136,30 +1137,29 @@ int read_i2c(int i2c_port, int addr, const std::vector<uint8_t> &write_bytes,
   return i2c_sdk_return == bytes_to_read;
 }
 
-ADXL345_Sensor::ADXL345_Sensor( 
-                               uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
-  // assume i2c is done 
+ADXL345_Sensor::ADXL345_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
+  // assume i2c is done
   this->i2c_port = settings[0];
-  this->init_sequence(); 
+  this->init_sequence();
 }
 void ADXL345_Sensor::init_sequence() {
   // write 83, 43, 0
-  bool ok = write_i2c(this->i2c_port, this->i2c_addr, {43, 0}); 
+  bool ok = write_i2c(this->i2c_port, this->i2c_addr, {43, 0});
   // write 83, 45, 8
   ok &= write_i2c(this->i2c_port, this->i2c_addr, {45, 8});
   // write 83, 49, 8
   ok &= write_i2c(this->i2c_port, this->i2c_addr, {49, 8});
-  if (!ok) { 
+  if (!ok) {
     this->stop = true;
   }
 }
 void ADXL345_Sensor::readSensor() {
-  if(this.stop) {
+  if (this->stop) {
     return;
   }
   // read 83, 50, 6bytes
   std::vector<uint8_t> out(6);
-  this.stop = !read_i2c(this->i2c_port, this->i2c_addr, {50}, 6, out);
+  this->stop = !read_i2c(this->i2c_port, this->i2c_addr, {50}, 6, out);
 
   this->writeSensorData(out);
 }
@@ -1172,7 +1172,7 @@ void Sensor::writeSensorData(std::vector<uint8_t> data) {
       this->type,         // write sensor type
   };
   out.insert(out.end(), data.begin(), data.end());
-  out[0] = out.size() -1 ; // dont count the packet length
+  out[0] = out.size() - 1; // dont count the packet length
 
   serial_write(out);
 }
