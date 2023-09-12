@@ -524,10 +524,20 @@ public:
 
 private:
   void init_sequence();
-  int num;
   int i2c_port;
   int i2c_addr = 83;
 };
+
+class VEML6040_Sensor : public Sensor {
+  public:
+  VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  private:
+  void init_sequence();
+  int i2c_port = 0;
+  int i2c_addr = 0x10;
+}
+
 void sensor_new();
 void addSensor(uint8_t data[], size_t len);
 void readSensors();

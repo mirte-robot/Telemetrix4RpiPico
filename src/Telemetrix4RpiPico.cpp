@@ -1081,6 +1081,8 @@ void sensor_new() {
   } else if (type == SENSOR_TYPES::ADXL345) {
     send_debug_info(5, 92);
     sensor = new ADXL345_Sensor(sensor_data);
+  } else if (type == SENSOR_TYPES::VEML6040) {
+    sensor = new VEML6040_Sensor(sensor_data);
   }
   sensor->type = type;
   sensor->num = sensor_num;
@@ -1162,6 +1164,10 @@ void ADXL345_Sensor::readSensor() {
   this->stop = !read_i2c(this->i2c_port, this->i2c_addr, {50}, 6, out);
 
   this->writeSensorData(out);
+}
+
+VEML6040_Sensor::VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A] ) {
+
 }
 
 void Sensor::writeSensorData(std::vector<uint8_t> data) {
