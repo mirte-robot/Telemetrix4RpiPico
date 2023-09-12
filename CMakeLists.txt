@@ -7,6 +7,8 @@ project(Telemetrix4RpiPico)
 pico_sdk_init()
 add_executable(Telemetrix4RpiPico
         src/Telemetrix4RpiPico.cpp
+        src/VL53L0.cpp
+        src/i2c_helpers.cpp
 )
 target_include_directories(Telemetrix4RpiPico PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/)
 # target_compile_options(Telemetrix4RpiPico PRIVATE -Wall -Wextra -Wpedantic -Werror)

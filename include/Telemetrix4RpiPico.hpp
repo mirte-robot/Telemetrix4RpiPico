@@ -6,6 +6,7 @@
 #define TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 
 #include "Telemetrix4RpiPico.pio.h"
+#include "i2c_helpers.hpp"
 #include "hardware/adc.h"
 #include "hardware/clocks.h"
 #include "hardware/i2c.h"
@@ -21,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
+#include "VL53L0.hpp"
 /************************** FORWARD REFERENCES ***********************
 We define all functions here as extern to provide allow
 forward referencing.
@@ -535,10 +537,22 @@ public:
 
 private:
   void init_sequence();
-  void readColor(uint8_t colorOffset, std::vector<uint8_t> &single_color_data);
   int i2c_port = 0;
   int i2c_addr = 0x10;
 };
+
+class VL53L0X_Sensor : public Sensor {
+public:
+  VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+
+private:
+VL53L0X sensor;
+  void init_sequence();
+  int i2c_port = 0;
+  int i2c_addr = 0x52;
+};
+
 
 void sensor_new();
 void addSensor(uint8_t data[], size_t len);

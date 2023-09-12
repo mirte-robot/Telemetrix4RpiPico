@@ -75,11 +75,13 @@ uint actual_number_of_pixels;
 // scan delay
 uint8_t scan_delay = 10;
 
-static inline void put_pixel(uint32_t pixel_grb) {
+static inline void put_pixel(uint32_t pixel_grb)
+{
   pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
 }
 
-static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
+static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b)
+{
   return ((uint32_t)(r) << 8) | ((uint32_t)(g) << 16) | (uint32_t)(b);
 }
 
@@ -126,7 +128,13 @@ int sonar_report_message[] = {4, SONAR_DISTANCE, SONAR_TRIG_PIN, M_WHOLE_VALUE,
 
 // dht report message
 int dht_report_message[] = {
-    6, DHT_REPORT, 0, 0, 0, 0, 0,
+    6,
+    DHT_REPORT,
+    0,
+    0,
+    0,
+    0,
+    0,
 };
 
 /*****************************************************************
@@ -178,7 +186,8 @@ command_descriptor command_table[] = {{&serial_loopback},
 /************************************************************
  * Loop back the received character
  */
-void serial_loopback() {
+void serial_loopback()
+{
   loop_back_report_message[LOOP_BACK_DATA] = command_buffer[DATA_TO_LOOP_BACK];
   serial_write(loop_back_report_message,
                sizeof(loop_back_report_message) / sizeof(int));
@@ -190,7 +199,8 @@ void serial_loopback() {
  * @param value: 16 bit value
  */
 // A method to send debug data across the serial link
-void send_debug_info(uint id, uint value) {
+void send_debug_info(uint id, uint value)
+{
   debug_info_report_message[DEBUG_ID] = id;
   debug_info_report_message[DEBUG_VALUE_HIGH_BYTE] = (value & 0xff00) >> 8;
   debug_info_report_message[DEBUG_VALUE_LOW_BYTE] = value & 0x00ff;
@@ -203,8 +213,10 @@ void send_debug_info(uint id, uint value) {
  * @param blinks - number of blinks
  * @param delay - delay in milliseconds
  */
-void led_debug(int blinks, uint delay) {
-  for (int i = 0; i < blinks; i++) {
+void led_debug(int blinks, uint delay)
+{
+  for (int i = 0; i < blinks; i++)
+  {
     gpio_put(LED_PIN, 1);
     sleep_ms(delay);
     gpio_put(LED_PIN, 0);
@@ -219,13 +231,15 @@ void led_debug(int blinks, uint delay) {
 /************************************************************************
  * Set a Pins mode
  */
-void set_pin_mode() {
+void set_pin_mode()
+{
   uint pin;
   uint mode;
   pin = command_buffer[SET_PIN_MODE_GPIO_PIN];
   mode = command_buffer[SET_PIN_MODE_MODE_TYPE];
 
-  switch (mode) {
+  switch (mode)
+  {
   case DIGITAL_INPUT:
   case DIGITAL_INPUT_PULL_UP:
   case DIGITAL_INPUT_PULL_DOWN:
@@ -234,10 +248,12 @@ void set_pin_mode() {
         command_buffer[SET_PIN_MODE_DIGITAL_IN_REPORTING_STATE];
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_IN);
-    if (mode == DIGITAL_INPUT_PULL_UP) {
+    if (mode == DIGITAL_INPUT_PULL_UP)
+    {
       gpio_pull_up(pin);
     }
-    if (mode == DIGITAL_INPUT_PULL_DOWN) {
+    if (mode == DIGITAL_INPUT_PULL_DOWN)
+    {
       gpio_pull_down(pin);
     }
     break;
@@ -246,7 +262,8 @@ void set_pin_mode() {
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_OUT);
     break;
-  case PWM_OUTPUT: {
+  case PWM_OUTPUT:
+  {
     /* Here we will set the operating frequency to be 50 hz to
        simplify support PWM as well as servo support.
     */
@@ -274,7 +291,8 @@ void set_pin_mode() {
   }
   case ANALOG_INPUT:
     // if the temp sensor was selected, then turn it on
-    if (pin == ADC_TEMPERATURE_REGISTER) {
+    if (pin == ADC_TEMPERATURE_REGISTER)
+    {
       adc_set_temp_sensor_enabled(true);
     }
     the_analog_pins[pin].reporting_enabled =
@@ -292,7 +310,8 @@ void set_pin_mode() {
 /**********************************************************
  * Set a digital output pin's value
  */
-void digital_write() {
+void digital_write()
+{
   uint pin;
   uint value;
   pin = command_buffer[DIGITAL_WRITE_GPIO_PIN];
@@ -303,7 +322,8 @@ void digital_write() {
 /**********************************************
  * Set A PWM Pin's value
  */
-void pwm_write() {
+void pwm_write()
+{
   uint pin;
   uint16_t value;
 
@@ -317,15 +337,19 @@ void pwm_write() {
 /***************************************************
  *  Control reporting
  */
-void modify_reporting() {
+void modify_reporting()
+{
   int pin = command_buffer[MODIFY_REPORTING_PIN];
 
-  switch (command_buffer[MODIFY_REPORTING_TYPE]) {
+  switch (command_buffer[MODIFY_REPORTING_TYPE])
+  {
   case REPORTING_DISABLE_ALL:
-    for (int i = 0; i < MAX_DIGITAL_PINS_SUPPORTED; i++) {
+    for (int i = 0; i < MAX_DIGITAL_PINS_SUPPORTED; i++)
+    {
       the_digital_pins[i].reporting_enabled = false;
     }
-    for (int i = 0; i < MAX_ANALOG_PINS_SUPPORTED; i++) {
+    for (int i = 0; i < MAX_ANALOG_PINS_SUPPORTED; i++)
+    {
       the_analog_pins[i].reporting_enabled = false;
     }
     break;
@@ -336,12 +360,14 @@ void modify_reporting() {
     the_analog_pins[pin].reporting_enabled = false;
     break;
   case REPORTING_DIGITAL_ENABLE:
-    if (the_digital_pins[pin].pin_mode != PIN_MODE_NOT_SET) {
+    if (the_digital_pins[pin].pin_mode != PIN_MODE_NOT_SET)
+    {
       the_digital_pins[pin].reporting_enabled = true;
     }
     break;
   case REPORTING_DIGITAL_DISABLE:
-    if (the_digital_pins[pin].pin_mode != PIN_MODE_NOT_SET) {
+    if (the_digital_pins[pin].pin_mode != PIN_MODE_NOT_SET)
+    {
       the_digital_pins[pin].reporting_enabled = false;
     }
     break;
@@ -353,7 +379,8 @@ void modify_reporting() {
 /***********************************************************************
  * Retrieve the current firmware version
  */
-void get_firmware_version() {
+void get_firmware_version()
+{
   serial_write(firmware_report_message,
                sizeof(firmware_report_message) / sizeof(int));
 }
@@ -361,7 +388,8 @@ void get_firmware_version() {
 /**************************************************************
  * Retrieve the Pico's Unique ID
  */
-void get_pico_unique_id() {
+void get_pico_unique_id()
+{
   // get the unique id
   pico_unique_board_id_t board_id;
   pico_get_unique_board_id(&board_id);
@@ -380,7 +408,8 @@ void get_pico_unique_id() {
 /********************************************
  * Stop reporting for all input pins
  */
-void stop_all_reports() {
+void stop_all_reports()
+{
   stop_reports = true;
   sleep_ms(20);
   stdio_flush();
@@ -389,7 +418,8 @@ void stop_all_reports() {
 /**********************************************
  * Enable reporting for all input pins
  */
-void enable_all_reports() {
+void enable_all_reports()
+{
   stdio_flush();
   stop_reports = false;
   sleep_ms(20);
@@ -398,20 +428,25 @@ void enable_all_reports() {
 /******************************************
  * Use the watchdog time to reset the board.
  */
-void reset_board() {
+void reset_board()
+{
   watchdog_reboot(0, 0, 0);
   watchdog_enable(10, 1);
 }
 
-void i2c_begin() {
+void i2c_begin()
+{
   // get the GPIO pins associated with this i2c instance
   uint sda_gpio = command_buffer[I2C_SDA_GPIO_PIN];
   uint scl_gpio = command_buffer[I2C_SCL_GPIO_PIN];
 
   // set the i2c instance - 0 or 1
-  if (command_buffer[I2C_PORT] == 0) {
+  if (command_buffer[I2C_PORT] == 0)
+  {
     i2c_init(i2c0, 100 * 1000);
-  } else {
+  }
+  else
+  {
     i2c_init(i2c1, 100 * 1000);
   }
   gpio_set_function(sda_gpio, GPIO_FUNC_I2C);
@@ -420,7 +455,8 @@ void i2c_begin() {
   gpio_pull_up(scl_gpio);
 }
 
-void i2c_read() {
+void i2c_read()
+{
 
   // The report_message offsets:
   // 0 = packet length - this must be calculated
@@ -449,19 +485,24 @@ void i2c_read() {
   i2c_inst_t *i2c;
 
   // Determine the i2c port to use.
-  if (command_buffer[I2C_PORT]) {
+  if (command_buffer[I2C_PORT])
+  {
     i2c = i2c1;
-  } else {
+  }
+  else
+  {
     i2c = i2c0;
   }
 
   // If there is an i2c register specified, set the register pointer
-  if (command_buffer[I2C_READ_NO_STOP_FLAG] != I2C_NO_REGISTER_SPECIFIED) {
+  if (command_buffer[I2C_READ_NO_STOP_FLAG] != I2C_NO_REGISTER_SPECIFIED)
+  {
     i2c_sdk_call_return_value =
         i2c_write_blocking(i2c, (uint8_t)command_buffer[I2C_DEVICE_ADDRESS],
                            (const uint8_t *)&command_buffer[I2C_READ_REGISTER],
                            1, (bool)command_buffer[I2C_READ_NO_STOP_FLAG]);
-    if (i2c_sdk_call_return_value == PICO_ERROR_GENERIC) {
+    if (i2c_sdk_call_return_value == PICO_ERROR_GENERIC)
+    {
       return;
     }
   }
@@ -471,7 +512,8 @@ void i2c_read() {
       i2c, (uint8_t)command_buffer[I2C_DEVICE_ADDRESS], data_from_device,
       (size_t)(command_buffer[I2C_READ_LENGTH]),
       (bool)command_buffer[I2C_READ_NO_STOP_FLAG]);
-  if (i2c_sdk_call_return_value == PICO_ERROR_GENERIC) {
+  if (i2c_sdk_call_return_value == PICO_ERROR_GENERIC)
+  {
     i2c_report_message[I2C_PACKET_LENGTH] =
         I2C_ERROR_REPORT_LENGTH;                         // length of the packet
     i2c_report_message[I2C_REPORT_ID] = I2C_READ_FAILED; // report ID
@@ -484,7 +526,8 @@ void i2c_read() {
   }
 
   // copy the data returned from i2c device into the report message buffer
-  for (int i = 0; i < i2c_sdk_call_return_value; i++) {
+  for (int i = 0; i < i2c_sdk_call_return_value; i++)
+  {
     i2c_report_message[i + I2C_READ_START_OF_DATA] = data_from_device[i];
   }
   // length of the packet
@@ -513,14 +556,18 @@ void i2c_read() {
   serial_write((int *)i2c_report_message, num_of_bytes_to_send);
 }
 
-void i2c_write() {
+void i2c_write()
+{
   // i2c instance pointer
   i2c_inst_t *i2c;
 
   // Determine the i2c port to use.
-  if (command_buffer[I2C_PORT]) {
+  if (command_buffer[I2C_PORT])
+  {
     i2c = i2c1;
-  } else {
+  }
+  else
+  {
     i2c = i2c0;
   }
 
@@ -542,7 +589,8 @@ void i2c_write() {
   serial_write(i2c_report_message, I2C_ERROR_REPORT_NUM_OF_BYTE_TO_SEND);
 }
 
-void init_neo_pixels() {
+void init_neo_pixels()
+{
   // initialize the pico support a NeoPixel string
   uint offset = pio_add_program(np_pio, &ws2812_program);
   ws2812_init(np_pio, np_sm, offset, command_buffer[NP_PIN_NUMBER], 800000,
@@ -551,7 +599,8 @@ void init_neo_pixels() {
   actual_number_of_pixels = command_buffer[NP_NUMBER_OF_PIXELS];
 
   // set the pixels to the fill color
-  for (uint i = 0; i < actual_number_of_pixels; i++) {
+  for (uint i = 0; i < actual_number_of_pixels; i++)
+  {
     pixel_buffer[i][RED] = command_buffer[NP_RED_FILL];
     pixel_buffer[i][GREEN] = command_buffer[NP_GREEN_FILL];
     pixel_buffer[i][BLUE] = command_buffer[NP_BLUE_FILL];
@@ -560,7 +609,8 @@ void init_neo_pixels() {
   sleep_ms(1);
 }
 
-void set_neo_pixel() {
+void set_neo_pixel()
+{
   // set a single neopixel in the pixel buffer
   pixel_buffer[command_buffer[NP_PIXEL_NUMBER]][RED] =
       command_buffer[NP_SET_RED];
@@ -568,59 +618,76 @@ void set_neo_pixel() {
       command_buffer[NP_SET_GREEN];
   pixel_buffer[command_buffer[NP_PIXEL_NUMBER]][BLUE] =
       command_buffer[NP_SET_BLUE];
-  if (command_buffer[NP_SET_AUTO_SHOW]) {
+  if (command_buffer[NP_SET_AUTO_SHOW])
+  {
     show_neo_pixels();
   }
 }
 
-void show_neo_pixels() {
+void show_neo_pixels()
+{
   // show the neopixels in the buffer
-  for (int i = 0; i < actual_number_of_pixels; i++) {
+  for (int i = 0; i < actual_number_of_pixels; i++)
+  {
     put_pixel(urgb_u32(pixel_buffer[i][RED], pixel_buffer[i][GREEN],
                        pixel_buffer[i][BLUE]));
   }
 }
 
-void clear_all_neo_pixels() {
+void clear_all_neo_pixels()
+{
   // set all the neopixels in the buffer to all zeroes
-  for (int i = 0; i < actual_number_of_pixels; i++) {
+  for (int i = 0; i < actual_number_of_pixels; i++)
+  {
     pixel_buffer[i][RED] = 0;
     pixel_buffer[i][GREEN] = 0;
     pixel_buffer[i][BLUE] = 0;
   }
-  if (command_buffer[NP_CLEAR_AUTO_SHOW]) {
+  if (command_buffer[NP_CLEAR_AUTO_SHOW])
+  {
     show_neo_pixels();
   }
 }
 
-void fill_neo_pixels() {
+void fill_neo_pixels()
+{
   // fill all the neopixels in the buffer with the
   // specified rgb values.
-  for (int i = 0; i < actual_number_of_pixels; i++) {
+  for (int i = 0; i < actual_number_of_pixels; i++)
+  {
     pixel_buffer[i][RED] = command_buffer[NP_FILL_RED];
     pixel_buffer[i][GREEN] = command_buffer[NP_FILL_GREEN];
     pixel_buffer[i][BLUE] = command_buffer[NP_FILL_BLUE];
   }
-  if (command_buffer[NP_FILL_AUTO_SHOW]) {
+  if (command_buffer[NP_FILL_AUTO_SHOW])
+  {
     show_neo_pixels();
   }
 }
 
-void sonar_callback(uint gpio, uint32_t events) {
-  if (events & GPIO_IRQ_EDGE_FALL) {
+void sonar_callback(uint gpio, uint32_t events)
+{
+  if (events & GPIO_IRQ_EDGE_FALL)
+  {
     // stop time
-    for (int i = 0; i <= sonar_count; i++) {
+    for (int i = 0; i <= sonar_count; i++)
+    {
       hc_sr04_descriptor *sonar = &the_hc_sr04s.sonars[i];
-      if (gpio == sonar->echo_pin) {
+      if (gpio == sonar->echo_pin)
+      {
         sonar->last_time_diff = time_us_32() - sonar->start_time;
         return;
       }
     }
-  } else if (events & GPIO_IRQ_EDGE_RISE) {
+  }
+  else if (events & GPIO_IRQ_EDGE_RISE)
+  {
     // start time
-    for (int i = 0; i <= sonar_count; i++) {
+    for (int i = 0; i <= sonar_count; i++)
+    {
       hc_sr04_descriptor *sonar = &the_hc_sr04s.sonars[i];
-      if (gpio == sonar->echo_pin) {
+      if (gpio == sonar->echo_pin)
+      {
         sonar->start_time = time_us_32();
         return;
       }
@@ -628,7 +695,8 @@ void sonar_callback(uint gpio, uint32_t events) {
   }
 }
 
-void init_quadrature_encoder(int A, int B, encoder_t *enc) {
+void init_quadrature_encoder(int A, int B, encoder_t *enc)
+{
   gpio_init(A);
   gpio_set_dir(A, GPIO_IN);
   gpio_set_pulls(A, false, false);
@@ -640,7 +708,8 @@ void init_quadrature_encoder(int A, int B, encoder_t *enc) {
   enc->B = B;
   enc->type = QUADRATURE;
 }
-void init_single_encoder(int A, encoder_t *enc) {
+void init_single_encoder(int A, encoder_t *enc)
+{
   gpio_init(A);
   gpio_set_dir(A, GPIO_IN);
   gpio_set_pulls(A, false, false);
@@ -648,14 +717,18 @@ void init_single_encoder(int A, encoder_t *enc) {
   enc->A = A;
   enc->type = SINGLE;
 }
-bool encoder_callback(repeating_timer_t *timer) {
+bool encoder_callback(repeating_timer_t *timer)
+{
   (void)timer;
-  if (encoders.next_encoder_index == 0) {
+  if (encoders.next_encoder_index == 0)
+  {
     return true;
   }
-  for (int i = 0; i < encoders.next_encoder_index; i++) {
+  for (int i = 0; i < encoders.next_encoder_index; i++)
+  {
     encoder_t *enc = &encoders.encoders[i];
-    if (enc->type == QUADRATURE) {
+    if (enc->type == QUADRATURE)
+    {
       bool a = gpio_get(enc->A);
 
       bool b = gpio_get(enc->B);
@@ -663,15 +736,21 @@ bool encoder_callback(repeating_timer_t *timer) {
       int new_gray_code_step = a << 1 | b;
       int new_bin_step = new_gray_code_step >> 1 ^ new_gray_code_step;
       int diff = new_bin_step - enc->last_state;
-      if (diff > -2 && diff < 2) {
+      if (diff > -2 && diff < 2)
+      {
         enc->step += diff;
-      } else {
+      }
+      else
+      {
         enc->step += (diff < 0) ? 1 : -1;
       }
       enc->last_state = new_bin_step;
-    } else {
+    }
+    else
+    {
       bool a = gpio_get(enc->A);
-      if (a != enc->last_state) {
+      if (a != enc->last_state)
+      {
         enc->step++;
         enc->last_state = a;
       }
@@ -680,7 +759,8 @@ bool encoder_callback(repeating_timer_t *timer) {
   return true;
 }
 
-bool create_encoder_timer() {
+bool create_encoder_timer()
+{
   int hz = 2000;
   /* blue encoder motor:
   - 110 rpm = ~2 rot/s
@@ -689,39 +769,51 @@ bool create_encoder_timer() {
   - requires at least 1 scan per step
 */
   if (!add_repeating_timer_us(-1000000 / hz, encoder_callback, NULL,
-                              &encoders.trigger_timer)) {
+                              &encoders.trigger_timer))
+  {
     printf("Failed to add timer\n");
     return false;
   }
   return true;
 }
 
-void encoder_new() {
+void encoder_new()
+{
   ENCODER_TYPES type = (ENCODER_TYPES)command_buffer[ENCODER_TYPE];
   uint pin_a = command_buffer[ENCODER_PIN_A];
   uint pin_b = command_buffer[ENCODER_PIN_B]; // both cases will have a pin B
-  if (encoders.next_encoder_index == 0) {
+  if (encoders.next_encoder_index == 0)
+  {
     bool timer = create_encoder_timer();
-    if (!timer) {
+    if (!timer)
+    {
       return;
     }
-  } else if (encoders.next_encoder_index > MAX_ENCODERS) {
+  }
+  else if (encoders.next_encoder_index > MAX_ENCODERS)
+  {
     return;
   }
   encoder_t *new_encoder = &encoders.encoders[encoders.next_encoder_index];
-  if (type == SINGLE) {
+  if (type == SINGLE)
+  {
     init_single_encoder(pin_a, new_encoder);
-  } else {
+  }
+  else
+  {
     init_quadrature_encoder(pin_a, pin_b, new_encoder);
   }
   encoders.next_encoder_index++;
 }
 int encoder_report_message[] = {3, ENCODER_REPORT, 0, 0};
 
-void scan_encoders() {
-  for (int i = 0; i < encoders.next_encoder_index; i++) {
+void scan_encoders()
+{
+  for (int i = 0; i < encoders.next_encoder_index; i++)
+  {
     encoder_t *enc = &encoders.encoders[i];
-    if (enc->step != 0) {
+    if (enc->step != 0)
+    {
       encoder_report_message[ENCODER_REPORT_PIN_A] = (uint8_t)enc->A;
       encoder_report_message[ENCODER_REPORT_STEP] = enc->step;
       enc->step = 0;
@@ -731,32 +823,37 @@ void scan_encoders() {
 }
 
 bool sonar_timer_callback(
-    repeating_timer_t *rt) { // periodically trigger all sonars at the same time
+    repeating_timer_t *rt)
+{ // periodically trigger all sonars at the same time
   gpio_set_mask(the_hc_sr04s.trigger_mask);
   busy_wait_us(10);
   gpio_clr_mask(the_hc_sr04s.trigger_mask);
   return true;
 }
 
-void sonar_new() {
+void sonar_new()
+{
   // add the sonar to the sonar struct to be processed within
   // the main loop
   uint trig_pin = command_buffer[SONAR_TRIGGER_PIN];
   uint echo_pin = command_buffer[SONAR_ECHO_PIN];
 
   // for the first HC-SR04, add the program.
-  if (sonar_count == -1) {
+  if (sonar_count == -1)
+  {
     // Init timer
     int hz = 10;
     // negative timeout means exact delay (rather than delay between callbacks)
     if (!add_repeating_timer_us(-1000000 / hz, sonar_timer_callback, NULL,
-                                &the_hc_sr04s.trigger_timer)) {
+                                &the_hc_sr04s.trigger_timer))
+    {
       printf("Failed to add timer\n");
       return;
     }
   }
   sonar_count++;
-  if (sonar_count > MAX_SONARS) {
+  if (sonar_count > MAX_SONARS)
+  {
     return;
   }
   the_hc_sr04s.sonars[sonar_count].trig_pin = trig_pin;
@@ -771,18 +868,22 @@ void sonar_new() {
       echo_pin, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &sonar_callback);
 }
 
-bool repeating_timer_callback(struct repeating_timer *t) {
+bool repeating_timer_callback(struct repeating_timer *t)
+{
   (void)t;
   // printf("Repeat at %lld\n", time_us_64());
   timer_fired = true;
   return true;
 }
 
-void dht_new() {
-  if (dht_count > MAX_DHTS) {
+void dht_new()
+{
+  if (dht_count > MAX_DHTS)
+  {
     return;
   }
-  if (dht_count == -1) {
+  if (dht_count == -1)
+  {
     // first time through start repeating timer
     add_repeating_timer_ms(2000, repeating_timer_callback, NULL, &timer);
   }
@@ -794,15 +895,19 @@ void dht_new() {
   gpio_init(dht_pin);
 }
 
-void init_spi() {
+void init_spi()
+{
   spi_inst_t *spi_port;
   uint spi_baud_rate;
   uint cs_pin;
 
   // initialize the spi port
-  if (command_buffer[SPI_PORT] == 0) {
+  if (command_buffer[SPI_PORT] == 0)
+  {
     spi_port = spi0;
-  } else {
+  }
+  else
+  {
     spi_port = spi1;
   }
 
@@ -819,7 +924,8 @@ void init_spi() {
   gpio_set_function(command_buffer[SPI_CLK_PIN], GPIO_FUNC_SPI);
 
   // initialize chip select GPIO pins
-  for (int i = 0; i < command_buffer[SPI_CS_LIST_LENGTH]; i++) {
+  for (int i = 0; i < command_buffer[SPI_CS_LIST_LENGTH]; i++)
+  {
     cs_pin = command_buffer[SPI_CS_LIST + i];
     // Chip select is active-low, so we'll initialise it to a driven-high state
     gpio_init(cs_pin);
@@ -828,7 +934,8 @@ void init_spi() {
   }
 }
 
-void spi_cs_control() {
+void spi_cs_control()
+{
   uint8_t cs_pin;
   uint8_t cs_state;
 
@@ -841,7 +948,8 @@ void spi_cs_control() {
 
 void set_scan_delay() { scan_delay = command_buffer[SCAN_DELAY]; }
 
-void read_blocking_spi() {
+void read_blocking_spi()
+{
   // The report_message offsets:
   // 0 = packet length - this must be calculated
   // 1 = SPI_READ_REPORT
@@ -854,9 +962,12 @@ void read_blocking_spi() {
   uint8_t repeated_transmit_byte;
   uint8_t data[command_buffer[SPI_READ_LEN]];
 
-  if (command_buffer[SPI_PORT] == 0) {
+  if (command_buffer[SPI_PORT] == 0)
+  {
     spi_port = spi0;
-  } else {
+  }
+  else
+  {
     spi_port = spi1;
   }
 
@@ -876,20 +987,25 @@ void read_blocking_spi() {
   spi_report_message[SPI_REPORT_ID] = SPI_REPORT;
   spi_report_message[SPI_REPORT_PORT] = command_buffer[SPI_PORT];
   spi_report_message[SPI_REPORT_NUMBER_OF_DATA_BYTES] = data_length;
-  for (int i = 0; i < data_length; i++) {
+  for (int i = 0; i < data_length; i++)
+  {
     spi_report_message[SPI_DATA + i] = data[i];
   }
   serial_write((int *)spi_report_message, SPI_DATA + data_length);
 }
 
-void write_blocking_spi() {
+void write_blocking_spi()
+{
   spi_inst_t *spi_port;
   uint cs_pin;
   size_t data_length;
 
-  if (command_buffer[SPI_PORT] == 0) {
+  if (command_buffer[SPI_PORT] == 0)
+  {
     spi_port = spi0;
-  } else {
+  }
+  else
+  {
     spi_port = spi1;
   }
 
@@ -898,15 +1014,19 @@ void write_blocking_spi() {
   spi_write_blocking(spi_port, &command_buffer[SPI_WRITE_DATA], data_length);
 }
 
-void set_format_spi() {
+void set_format_spi()
+{
   spi_inst_t *spi_port;
   uint data_bits = command_buffer[SPI_NUMBER_OF_BITS];
   spi_cpol_t cpol = (spi_cpol_t)command_buffer[SPI_CLOCK_PHASE];
   spi_cpha_t cpha = (spi_cpha_t)command_buffer[SPI_CLOCK_POLARITY];
 
-  if (command_buffer[SPI_PORT] == 0) {
+  if (command_buffer[SPI_PORT] == 0)
+  {
     spi_port = spi0;
-  } else {
+  }
+  else
+  {
     spi_port = spi1;
   }
   spi_set_format(spi_port, data_bits, cpol, cpha, (spi_order_t)1);
@@ -930,7 +1050,8 @@ void servo_detach() {}
 /***************************************************
  * Retrieve the next command and process it
  */
-void get_next_command() {
+void get_next_command()
+{
   int packet_size;
   int packet_data;
   command_descriptor command_entry;
@@ -942,21 +1063,28 @@ void get_next_command() {
   // The first byte is the command ID and the following bytes
   // are the associated data bytes
   packet_size = getchar_timeout_us(100);
-  if (packet_size == PICO_ERROR_TIMEOUT) {
+  if (packet_size == PICO_ERROR_TIMEOUT)
+  {
     // no data, let the main loop continue to run to handle inputs
     return;
-  } else {
+  }
+  else
+  {
     // get the rest of the packet
-    for (int i = 0; i < packet_size; i++) {
-      for (int retries = 10; retries > 0; retries--) {
+    for (int i = 0; i < packet_size; i++)
+    {
+      for (int retries = 10; retries > 0; retries--)
+      {
         packet_data = getchar_timeout_us(100);
 
-        if (packet_data != PICO_ERROR_TIMEOUT) {
+        if (packet_data != PICO_ERROR_TIMEOUT)
+        {
           break;
         }
         sleep_ms(1);
       }
-      if (packet_data == PICO_ERROR_TIMEOUT) {
+      if (packet_data == PICO_ERROR_TIMEOUT)
+      {
         return; // failed message
       }
       command_buffer[i] = (uint8_t)packet_data;
@@ -980,7 +1108,8 @@ void get_next_command() {
  * Scan all pins set as digital inputs
  * and generate a report.
  */
-void scan_digital_inputs() {
+void scan_digital_inputs()
+{
   int value;
 
   // report message
@@ -990,14 +1119,18 @@ void scan_digital_inputs() {
   // index 2 = pin number
   // index 3 = value
 
-  for (int i = 0; i < MAX_DIGITAL_PINS_SUPPORTED; i++) {
+  for (int i = 0; i < MAX_DIGITAL_PINS_SUPPORTED; i++)
+  {
     if (the_digital_pins[i].pin_mode == DIGITAL_INPUT ||
         the_digital_pins[i].pin_mode == DIGITAL_INPUT_PULL_UP ||
-        the_digital_pins[i].pin_mode == DIGITAL_INPUT_PULL_DOWN) {
-      if (the_digital_pins[i].reporting_enabled) {
+        the_digital_pins[i].pin_mode == DIGITAL_INPUT_PULL_DOWN)
+    {
+      if (the_digital_pins[i].reporting_enabled)
+      {
         // if the value changed since last read
         value = gpio_get(the_digital_pins[i].pin_number);
-        if (value != the_digital_pins[i].last_value) {
+        if (value != the_digital_pins[i].last_value)
+        {
           the_digital_pins[i].last_value = value;
           digital_input_report_message[DIGITAL_INPUT_GPIO_PIN] = i;
           digital_input_report_message[DIGITAL_INPUT_GPIO_VALUE] = value;
@@ -1008,7 +1141,8 @@ void scan_digital_inputs() {
   }
 }
 
-void scan_analog_inputs() {
+void scan_analog_inputs()
+{
   uint16_t value;
 
   // report message
@@ -1021,12 +1155,15 @@ void scan_analog_inputs() {
 
   int differential;
 
-  for (uint8_t i = 0; i < MAX_ANALOG_PINS_SUPPORTED; i++) {
-    if (the_analog_pins[i].reporting_enabled) {
+  for (uint8_t i = 0; i < MAX_ANALOG_PINS_SUPPORTED; i++)
+  {
+    if (the_analog_pins[i].reporting_enabled)
+    {
       adc_select_input(i);
       value = adc_read();
       differential = abs(value - the_analog_pins[i].last_value);
-      if (differential >= the_analog_pins[i].differential) {
+      if (differential >= the_analog_pins[i].differential)
+      {
         // trigger value achieved, send out the report
         the_analog_pins[i].last_value = value;
         // input_message[1] = the_analog_pins[i].pin_number;
@@ -1039,9 +1176,11 @@ void scan_analog_inputs() {
   }
 }
 
-void scan_sonars() {
+void scan_sonars()
+{
   uint32_t current_time = time_us_32();
-  for (int i = 0; i <= sonar_count; i++) {
+  for (int i = 0; i <= sonar_count; i++)
+  {
     hc_sr04_descriptor *sonar = &the_hc_sr04s.sonars[i];
 
     if ((current_time - sonar->start_time) >
@@ -1049,7 +1188,8 @@ void scan_sonars() {
     {
       sonar->last_time_diff = 0;
     }
-    if (sonar->last_time_diff > 30000) {
+    if (sonar->last_time_diff > 30000)
+    {
       sonar->last_time_diff = 0; // HC-SR04 has max range of 4 / 5m, with a
                                  // timeout pulse longer than 35ms
     }
@@ -1065,23 +1205,34 @@ void scan_sonars() {
 
 // SENSORSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
-void sensor_new() {
+void sensor_new()
+{
   const SENSOR_TYPES type = (SENSOR_TYPES)command_buffer[2];
   const uint8_t sensor_num = command_buffer[1];
   uint8_t sensor_data[SENSORS_MAX_SETTINGS_A];
   std::copy(command_buffer + 3, command_buffer + 3 + SENSORS_MAX_SETTINGS_A,
             sensor_data);
-  if (type >= SENSOR_TYPES::MAX_SENSORS) {
+  if (type >= SENSOR_TYPES::MAX_SENSORS)
+  {
     return;
   }
   Sensor *sensor = nullptr;
 
-  if (type == GPS) {
+  if (type == GPS)
+  {
     sensor = new GPS_Sensor(sensor_data);
-  } else if (type == SENSOR_TYPES::ADXL345) {
+  }
+  else if (type == SENSOR_TYPES::ADXL345)
+  {
     sensor = new ADXL345_Sensor(sensor_data);
-  } else if (type == SENSOR_TYPES::VEML6040) {
+  }
+  else if (type == SENSOR_TYPES::VEML6040)
+  {
     sensor = new VEML6040_Sensor(sensor_data);
+  }
+  else if (type == SENSOR_TYPES::TOF_VL53)
+  {
+    sensor = new VL53L0X_Sensor(sensor_data);
   }
   sensor->type = type;
   sensor->num = sensor_num;
@@ -1089,73 +1240,46 @@ void sensor_new() {
   sensors.push_back(sensor);
 }
 
-void readSensors() {
-  for (auto &sensor : sensors) {
+void readSensors()
+{
+  for (auto &sensor : sensors)
+  {
     sensor->readSensor();
   }
 }
 
-GPS_Sensor::GPS_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
+GPS_Sensor::GPS_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A])
+{
   // TODO: read uart, forward to serial
 }
-void GPS_Sensor::readSensor() {
+void GPS_Sensor::readSensor()
+{
   // TODO: read uart, forward to serial
 }
 
-int write_i2c(int i2c_port, int addr, const std::vector<uint8_t> &bytes, bool nostop=false) {
-  i2c_inst_t *i2c;
-
-  if (i2c_port) {
-    i2c = i2c1;
-  } else {
-    i2c = i2c0;
-  }
-  int i2c_sdk_call_return_value =
-      i2c_write_blocking_until(i2c, (uint8_t)addr, bytes.data(), bytes.size(),
-                               nostop, make_timeout_time_ms(50));
-  return i2c_sdk_call_return_value == bytes.size();
-}
-
-int read_i2c(int i2c_port, int addr, const std::vector<uint8_t> &write_bytes,
-             int bytes_to_read, std::vector<uint8_t> &read_bytes) {
-
-  // write i2c
-  if (!write_bytes.empty()) {
-    write_i2c(i2c_port, addr, write_bytes, true);
-  }
-  i2c_inst_t *i2c;
-
-  if (i2c_port) {
-    i2c = i2c1;
-  } else {
-    i2c = i2c0;
-  }
-  read_bytes.resize(bytes_to_read, 0);
-  auto i2c_sdk_return =
-      i2c_read_blocking_until(i2c, addr, read_bytes.data(), bytes_to_read,
-                              false, make_timeout_time_ms(50));
-
-  return i2c_sdk_return == bytes_to_read;
-}
-
-ADXL345_Sensor::ADXL345_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
+ADXL345_Sensor::ADXL345_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A])
+{
   // assume i2c is done
   this->i2c_port = settings[0];
   this->init_sequence();
 }
-void ADXL345_Sensor::init_sequence() {
+void ADXL345_Sensor::init_sequence()
+{
   // write 83, 43, 0
   bool ok = write_i2c(this->i2c_port, this->i2c_addr, {43, 0});
   // write 83, 45, 8
   ok &= write_i2c(this->i2c_port, this->i2c_addr, {45, 8});
   // write 83, 49, 8
   ok &= write_i2c(this->i2c_port, this->i2c_addr, {49, 8});
-  if (!ok) {
+  if (!ok)
+  {
     this->stop = true;
   }
 }
-void ADXL345_Sensor::readSensor() {
-  if (this->stop) {
+void ADXL345_Sensor::readSensor()
+{
+  if (this->stop)
+  {
     return;
   }
   // read 83, 50, 6bytes
@@ -1165,12 +1289,14 @@ void ADXL345_Sensor::readSensor() {
   this->writeSensorData(out);
 }
 
-VEML6040_Sensor::VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
+VEML6040_Sensor::VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A])
+{
   this->i2c_port = settings[0];
   this->init_sequence();
 }
 
-void VEML6040_Sensor::init_sequence() {
+void VEML6040_Sensor::init_sequence()
+{
   bool ok = write_i2c(this->i2c_port, this->i2c_addr,
                       {
                           0,             // register 0
@@ -1182,8 +1308,10 @@ void VEML6040_Sensor::init_sequence() {
                       });
 }
 
-void VEML6040_Sensor::readSensor() {
-  if (this->stop) {
+void VEML6040_Sensor::readSensor()
+{
+  if (this->stop)
+  {
     return;
   }
   std::vector<uint8_t> data;
@@ -1191,19 +1319,35 @@ void VEML6040_Sensor::readSensor() {
   std::vector<uint8_t> single_color_data(2);
   bool ok = true;
   for (uint8_t reg = 0x08; reg <= 0x0B;
-       reg++) { // read the 4 registers and add the data to the full data vector
+       reg++)
+  { // read the 4 registers and add the data to the full data vector
     ok &= read_i2c(this->i2c_port, this->i2c_addr, {reg}, 2, single_color_data);
-    data.push_back(single_color_data[0] );
-    data.push_back(single_color_data[1] );
+    data.push_back(single_color_data[0]);
+    data.push_back(single_color_data[1]);
   }
 
   this->writeSensorData(data);
-  if (!ok) {
+  if (!ok)
+  {
     this->stop = true;
   }
 }
+VL53L0X_Sensor::VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A])
+{
+  this->sensor.setBus(settings[0]);
+  this->sensor.init();
+  this->sensor.startContinuous();
+}
 
-void Sensor::writeSensorData(std::vector<uint8_t> data) {
+void VL53L0X_Sensor::readSensor()
+{
+  auto dist = this->sensor.readRangeContinuousMillimeters();
+  std::vector<uint8_t> data = {(uint8_t)(dist >> 8), (uint8_t)(dist & 0xFF)};
+  this->writeSensorData(data);
+}
+
+void Sensor::writeSensorData(std::vector<uint8_t> data)
+{
   std::vector<uint8_t> out = {
       0,                  // write len
       SENSOR_REPORT,      // write type
@@ -1216,31 +1360,38 @@ void Sensor::writeSensorData(std::vector<uint8_t> data) {
   serial_write(out);
 }
 
-void serial_write(std::vector<uint8_t> data) {
-  for (auto i : data) {
+void serial_write(std::vector<uint8_t> data)
+{
+  for (auto i : data)
+  {
     putchar(i);
   }
   stdio_flush();
 }
 
 // DHTS sensor?
-void scan_dhts() {
+void scan_dhts()
+{
   // read the next dht device
   // one device is read each cycle
-  if (dht_count >= 0) {
-    if (timer_fired) {
+  if (dht_count >= 0)
+  {
+    if (timer_fired)
+    {
       timer_fired = false;
       int the_index = the_dhts.next_dht_index;
       read_dht(the_dhts.dhts[the_index].data_pin);
       the_dhts.next_dht_index++;
-      if (the_dhts.next_dht_index > dht_count) {
+      if (the_dhts.next_dht_index > dht_count)
+      {
         the_dhts.next_dht_index = 0;
       }
     }
   }
 }
 
-void read_dht(uint dht_pin) {
+void read_dht(uint dht_pin)
+{
   int data[5] = {0, 0, 0, 0, 0};
   uint last = 1;
   uint j = 0;
@@ -1258,9 +1409,11 @@ void read_dht(uint dht_pin) {
   gpio_set_dir(dht_pin, GPIO_IN);
 
   sleep_us(1);
-  for (uint i = 0; i < DHT_MAX_TIMINGS; i++) {
+  for (uint i = 0; i < DHT_MAX_TIMINGS; i++)
+  {
     uint count = 0;
-    while (gpio_get(dht_pin) == last) {
+    while (gpio_get(dht_pin) == last)
+    {
       count++;
       sleep_us(1);
       if (count == 255)
@@ -1270,7 +1423,8 @@ void read_dht(uint dht_pin) {
     if (count == 255)
       break;
 
-    if ((i >= 4) && (i % 2 == 0)) {
+    if ((i >= 4) && (i % 2 == 0))
+    {
       data[j / 8] <<= 1;
       if (count > 46)
         data[j / 8] |= 1;
@@ -1278,16 +1432,20 @@ void read_dht(uint dht_pin) {
     }
   }
   if ((j >= 40) &&
-      (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF))) {
+      (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF)))
+  {
     humidity = (float)((data[0] << 8) + data[1]) / 10;
-    if (humidity > 100) {
+    if (humidity > 100)
+    {
       humidity = data[0];
     }
     temp_celsius = (float)(((data[2] & 0x7F) << 8) + data[3]) / 10;
-    if (temp_celsius > 125) {
+    if (temp_celsius > 125)
+    {
       temp_celsius = data[2];
     }
-    if (data[2] & 0x80) {
+    if (data[2] & 0x80)
+    {
       temp_celsius = -temp_celsius;
     }
 
@@ -1298,7 +1456,9 @@ void read_dht(uint dht_pin) {
     nearest = roundf(humidity * 100) / 100;
     humidity_int_part = (int)nearest;
     humidity_dec_part = (int)((nearest - humidity_int_part) * 100);
-  } else {
+  }
+  else
+  {
     // bad data return zeros
     temp_int_part = temp_dec_part = humidity_int_part = humidity_dec_part = 0;
   }
@@ -1316,8 +1476,10 @@ void read_dht(uint dht_pin) {
  * @param buffer
  * @param num_of_bytes_to_send
  */
-void serial_write(const int *buffer, int num_of_bytes_to_send) {
-  for (int i = 0; i < num_of_bytes_to_send; i++) {
+void serial_write(const int *buffer, int num_of_bytes_to_send)
+{
+  for (int i = 0; i < num_of_bytes_to_send; i++)
+  {
     putchar((buffer[i]) & 0x00ff);
   }
   stdio_flush();
@@ -1327,7 +1489,8 @@ void serial_write(const int *buffer, int num_of_bytes_to_send) {
  *                  MAIN FUNCTION
  ****************************************************************/
 
-int main() {
+int main()
+{
   stdio_init_all();
   stdio_set_translate_crlf(&stdio_usb, false);
   stdio_set_translate_crlf(&stdio_uart, false);
@@ -1340,7 +1503,8 @@ int main() {
   adc_init();
   // create an array of pin_descriptors for 100 pins
   // establish the digital pin array
-  for (uint8_t i = 0; i < MAX_DIGITAL_PINS_SUPPORTED; i++) {
+  for (uint8_t i = 0; i < MAX_DIGITAL_PINS_SUPPORTED; i++)
+  {
     the_digital_pins[i].pin_number = i;
     the_digital_pins[i].pin_mode = PIN_MODE_NOT_SET;
     the_digital_pins[i].reporting_enabled = false;
@@ -1348,14 +1512,16 @@ int main() {
   }
 
   // establish the analog pin array
-  for (uint8_t i = 0; i < MAX_ANALOG_PINS_SUPPORTED; i++) {
+  for (uint8_t i = 0; i < MAX_ANALOG_PINS_SUPPORTED; i++)
+  {
     the_analog_pins[i].reporting_enabled = false;
     the_analog_pins[i].last_value = -1;
   }
 
   // initialize the sonar structures
   sonar_data the_hc_sr04s = {.next_sonar_index = 0, .trigger_mask = 0};
-  for (int i = 0; i < MAX_SONARS; i++) {
+  for (int i = 0; i < MAX_SONARS; i++)
+  {
     the_hc_sr04s.sonars[i].trig_pin = the_hc_sr04s.sonars[i].echo_pin =
         (uint)-1;
   }
@@ -1371,12 +1537,15 @@ int main() {
 
   // infinite loop
   uint32_t last_scan = 0;
-  while (true) {
+  while (true)
+  {
     watchdog_update();
     get_next_command();
 
-    if (!stop_reports) {
-      if (time_us_32() - last_scan >= (scan_delay * 1000)) {
+    if (!stop_reports)
+    {
+      if (time_us_32() - last_scan >= (scan_delay * 1000))
+      {
         last_scan = time_us_32();
         scan_digital_inputs();
         scan_analog_inputs();
