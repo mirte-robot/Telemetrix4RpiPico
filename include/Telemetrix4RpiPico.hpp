@@ -519,7 +519,7 @@ private:
 };
 class ADXL345_Sensor : public Sensor {
 public:
-  ADXL345_Sensor( uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  ADXL345_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
 
 private:
@@ -529,14 +529,16 @@ private:
 };
 
 class VEML6040_Sensor : public Sensor {
-  public:
+public:
   VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
-  private:
+
+private:
   void init_sequence();
+  void readColor(uint8_t colorOffset, std::vector<uint8_t> &single_color_data);
   int i2c_port = 0;
   int i2c_addr = 0x10;
-}
+};
 
 void sensor_new();
 void addSensor(uint8_t data[], size_t len);
