@@ -1079,7 +1079,6 @@ void sensor_new() {
   if (type == GPS) {
     sensor = new GPS_Sensor(sensor_data);
   } else if (type == SENSOR_TYPES::ADXL345) {
-    send_debug_info(5, 92);
     sensor = new ADXL345_Sensor(sensor_data);
   } else if (type == SENSOR_TYPES::VEML6040) {
     sensor = new VEML6040_Sensor(sensor_data);
@@ -1103,7 +1102,7 @@ void GPS_Sensor::readSensor() {
   // TODO: read uart, forward to serial
 }
 
-int write_i2c(int i2c_port, int addr, const std::vector<uint8_t> &bytes) {
+int write_i2c(int i2c_port, int addr, const std::vector<uint8_t> &bytes, bool nostop=false) {
   i2c_inst_t *i2c;
 
   if (i2c_port) {
@@ -1113,7 +1112,7 @@ int write_i2c(int i2c_port, int addr, const std::vector<uint8_t> &bytes) {
   }
   int i2c_sdk_call_return_value =
       i2c_write_blocking_until(i2c, (uint8_t)addr, bytes.data(), bytes.size(),
-                               false, make_timeout_time_ms(50));
+                               nostop, make_timeout_time_ms(50));
   return i2c_sdk_call_return_value == bytes.size();
 }
 
@@ -1122,7 +1121,7 @@ int read_i2c(int i2c_port, int addr, const std::vector<uint8_t> &write_bytes,
 
   // write i2c
   if (!write_bytes.empty()) {
-    write_i2c(i2c_port, addr, write_bytes);
+    write_i2c(i2c_port, addr, write_bytes, true);
   }
   i2c_inst_t *i2c;
 
@@ -1184,17 +1183,18 @@ void VEML6040_Sensor::init_sequence() {
 }
 
 void VEML6040_Sensor::readSensor() {
-  if (!this->stop) {
+  if (this->stop) {
     return;
   }
-  std::vector<uint8_t> data(8);
+  std::vector<uint8_t> data;
+  data.reserve(8);
   std::vector<uint8_t> single_color_data(2);
   bool ok = true;
   for (uint8_t reg = 0x08; reg <= 0x0B;
        reg++) { // read the 4 registers and add the data to the full data vector
     ok &= read_i2c(this->i2c_port, this->i2c_addr, {reg}, 2, single_color_data);
-    data.push_back(single_color_data[0]);
-    data.push_back(single_color_data[1]);
+    data.push_back(single_color_data[0] );
+    data.push_back(single_color_data[1] );
   }
 
   this->writeSensorData(data);
