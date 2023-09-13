@@ -536,6 +536,7 @@ public:
   void readSensor();
 
 private:
+  uart_inst_t * uart_id = uart0;
 };
 class ADXL345_Sensor : public Sensor
 {
