@@ -24,6 +24,7 @@
 #include <vector>
 #include "VL53L0.hpp"
 #include "MPU9250.hpp"
+#include "HX711.hpp"
 /************************** FORWARD REFERENCES ***********************
 We define all functions here as extern to provide allow
 forward referencing.
@@ -580,8 +581,15 @@ public:
 
 private:
   MPU9250 sensor;
-  void init_sequence();
   int i2c_port = 0;
+};
+
+class HX711_Sensor : public Sensor {
+  public:
+  HX711_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  private:
+  HX711 sensor;
 };
 
 void sensor_new();
