@@ -1204,16 +1204,29 @@ void scan_sonars()
   }
 }
 
-void ping() {
+void ping()
+{
+  static bool watchdog_enabled = false;
+  static uint8_t random = -1;
+
   auto special_num = command_buffer[1];
+  if (!watchdog_enabled)
+  {
+    watchdog_enable(1000, 1); // Add watchdog requiring trigger every 1s
+    watchdog_enabled = true;
+    srand(time_us_32());
+    random = rand() % 100; // create some random number to let computer side know it is the same run
+  }
   std::vector<uint8_t> out = {
-      0,                  // write len
-      POING_REPORT,      // write type
-      special_num
-  };
+      0,            // write len
+      POING_REPORT, // write type
+      special_num,
+      random
+      };
   out[0] = out.size() - 1; // dont count the packet length
   serial_write(out);
-  // watchdog_update();
+  
+  watchdog_update();
 }
 
 // SENSORSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
@@ -1292,13 +1305,12 @@ GPS_Sensor::GPS_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A])
   uart_set_fifo_enabled(uart_id, true);
 
   uart_set_format(uart_id, DATA_BITS, STOP_BITS, PARITY);
-  send_debug_info(100, 43);
 }
 
 void GPS_Sensor::readSensor()
 {
   // Is this fast enough? fifo is 32 bytes long, unknown speed of gps module
-  // baud = 9600 -> max ~960 bytes/s. Sensor interval is 100Hz, should be okay.
+  // baud = 9600 -> max ~960 bytes/s. Sensor interval is 50-100Hz -> 1500-3200 bytes/s, is okay.
 
   std::vector<uint8_t> data;
   if (uart_is_readable(this->uart_id))
@@ -1634,7 +1646,6 @@ int main()
   // starting afresh
   led_debug(2, 250);
 
-  // watchdog_enable(1000, 1); // Add watchdog requiring trigger every 1s
   // infinite loop
   uint32_t last_scan = 0;
   while (true)
