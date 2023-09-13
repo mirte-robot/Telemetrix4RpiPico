@@ -40,7 +40,7 @@ class HX711
 		bool is_ready();
 
 		// Wait for the HX711 to become ready
-		void wait_ready(unsigned long delay_ms = 0);
+		void wait_ready(unsigned long delay_ms = 1);
 		bool wait_ready_retry(int retries = 3, unsigned long delay_ms = 0);
 		bool wait_ready_timeout(unsigned long timeout = 1000, unsigned long delay_ms = 0);
 

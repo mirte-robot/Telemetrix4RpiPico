@@ -35,13 +35,13 @@ uint8_t shiftInSlow(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder)
     for (i = 0; i < 8; ++i)
     {
         gpio_put(clockPin, 1);
-        sleep_us(1);
+        busy_wait_us(1);
         if (bitOrder == LSBFIRST)
             value |= gpio_get(dataPin) << i;
         else
             value |= gpio_get(dataPin) << (7 - i);
         gpio_put(clockPin, 0);
-        sleep_us(1);
+        busy_wait_us(1);
     }
     return value;
 }
@@ -69,7 +69,9 @@ void HX711::begin(byte dout, byte pd_sck, byte gain)
 {
     PD_SCK = pd_sck;
     DOUT = dout;
+    gpio_init(PD_SCK);
     gpio_set_dir(PD_SCK, GPIO_OUT);
+    gpio_init(DOUT);
     gpio_set_dir(DOUT, GPIO_IN);
 
     // pinMode(PD_SCK, OUTPUT);
@@ -103,7 +105,10 @@ long HX711::read()
 {
 
     // Wait for the chip to become ready.
-    wait_ready();
+    if (!wait_ready_timeout(100, 10))
+    {
+        return 0;
+    }
 
     // Define structures for reading data into.
     unsigned long value = 0;
@@ -135,11 +140,11 @@ long HX711::read()
     {
         gpio_put(PD_SCK, 1);
 
-        sleep_ms(1);
+        busy_wait_us(1);
 
         gpio_put(PD_SCK, 0);
 
-        sleep_ms(1);
+        busy_wait_us(1);
     }
 
     // Enable interrupts again.
@@ -195,8 +200,10 @@ bool HX711::wait_ready_timeout(unsigned long timeout, unsigned long delay_ms)
 {
     // Wait for the chip to become ready until timeout.
     // https://github.com/bogde/HX711/pull/96
-    auto millisStarted = time_us_32();
-    while (time_us_32() - millisStarted < timeout)
+
+    timeout *= 1000;
+    auto microsStarted = time_us_32();
+    while (time_us_32() - microsStarted < timeout)
     {
         if (is_ready())
         {

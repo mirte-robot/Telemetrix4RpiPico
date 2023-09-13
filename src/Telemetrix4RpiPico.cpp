@@ -1237,11 +1237,12 @@ void sensor_new()
   else if (type == SENSOR_TYPES::MPU_9250)
   {
     sensor = new MPU9250_Sensor(sensor_data);
-  } else if (type == SENSOR_TYPES::LOAD_CELL)
+  }
+  else if (type == SENSOR_TYPES::LOAD_CELL)
   {
     sensor = new HX711_Sensor(sensor_data);
   }
-  
+
   sensor->type = type;
   sensor->num = sensor_num;
 
@@ -1383,21 +1384,23 @@ void MPU9250_Sensor::readSensor()
   }
 }
 
-HX711_Sensor::HX711_Sensor(uint8_t sensor_data[SENSORS_MAX_SETTINGS_A]) {
-  this->sensor.begin(sensor_data[0], sensor_data[1]);
+HX711_Sensor::HX711_Sensor(uint8_t sensor_data[SENSORS_MAX_SETTINGS_A])
+{
+  auto dout = sensor_data[0];
+  auto sck = sensor_data[1];
+  this->sensor.begin(dout, sck);
 }
-void HX711_Sensor::readSensor() {
-  if(this->sensor.is_ready()){
+void HX711_Sensor::readSensor()
+{
+  if (this->sensor.is_ready())
+  {
     auto reading = this->sensor.read();
     static_assert(sizeof(reading) == 4);
-    std::vector<uint8_t> data(reinterpret_cast<const char*>(&reading),
-          reinterpret_cast<const char*>(&reading) + sizeof(reading));
+    std::vector<uint8_t> data(reinterpret_cast<const char *>(&reading),
+                              reinterpret_cast<const char *>(&reading) + sizeof(reading));
     this->writeSensorData(data);
   }
 }
-
-
-
 
 void Sensor::writeSensorData(std::vector<uint8_t> data)
 {
@@ -1587,7 +1590,6 @@ int main()
   led_debug(2, 250);
 
   watchdog_enable(1000, 1); // Add watchdog requiring trigger every 1s
-
   // infinite loop
   uint32_t last_scan = 0;
   while (true)
