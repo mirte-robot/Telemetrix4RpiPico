@@ -23,6 +23,7 @@
 #include <string.h>
 #include <vector>
 #include "VL53L0.hpp"
+#include "MPU9250.hpp"
 /************************** FORWARD REFERENCES ***********************
 We define all functions here as extern to provide allow
 forward referencing.
@@ -115,7 +116,7 @@ void encoder_new();
 #define SET_PIN_MODE 1
 #define DIGITAL_WRITE 2
 #define PWM_WRITE 3
-#define MODIFY_REPORTING                                                       \
+#define MODIFY_REPORTING \
   4 // mode(all, analog, or digital), pin, enable or disable
 #define GET_FIRMWARE_VERSION 5
 #define GET_PICO_UNIQUE_ID 6
@@ -329,7 +330,11 @@ const uint DHT_MAX_TIMINGS = 85;
 // Max encoder devices
 #define MAX_ENCODERS 4
 
-typedef enum { SINGLE = 1, QUADRATURE = 2 } ENCODER_TYPES;
+typedef enum
+{
+  SINGLE = 1,
+  QUADRATURE = 2
+} ENCODER_TYPES;
 
 // encoder reports are identified by pin A
 #define ENCODER_REPORT_PIN_A 2
@@ -421,7 +426,8 @@ const int SENSOR_REPORT = 20;
 #define I2C_NO_REGISTER_SPECIFIED 254
 
 // a descriptor for digital pins
-typedef struct {
+typedef struct
+{
   uint pin_number;
   uint pin_mode;
   uint reporting_enabled; // If true, then send reports if an input pin
@@ -429,14 +435,16 @@ typedef struct {
 } pin_descriptor;
 
 // a descriptor for analog pins
-typedef struct analog_pin_descriptor {
+typedef struct analog_pin_descriptor
+{
   uint reporting_enabled; // If true, then send reports if an input pin
   int last_value;         // Last value read for input mode
   int differential;       // difference between current and last value needed
 } analog_pin_descriptor;
 
 // This structure describes an HC-SR04 type device
-typedef struct hc_sr04_descriptor {
+typedef struct hc_sr04_descriptor
+{
   uint trig_pin; // trigger pin
   uint echo_pin; // echo pin
   uint32_t start_time;
@@ -445,7 +453,8 @@ typedef struct hc_sr04_descriptor {
 
 // this structure holds an index into the sonars array
 // and the sonars array
-typedef struct sonar_data {
+typedef struct sonar_data
+{
   int next_sonar_index;
   repeating_timer_t trigger_timer;
   uint32_t trigger_mask;
@@ -453,7 +462,8 @@ typedef struct sonar_data {
 } sonar_data;
 
 // this structure describes a DHT type device
-typedef struct dht_descriptor {
+typedef struct dht_descriptor
+{
   uint data_pin; // data pin
   absolute_time_t previous_time;
   /* for possible future use
@@ -464,13 +474,15 @@ typedef struct dht_descriptor {
 
 // this structure holds an index into the dht array
 // and the dhts array
-typedef struct dht_data {
+typedef struct dht_data
+{
   int next_dht_index;
   dht_descriptor dhts[MAX_DHTS];
 } dht_data;
 
 // encoder type
-typedef struct {
+typedef struct
+{
   ENCODER_TYPES type;
   int A;
   int B;
@@ -478,13 +490,15 @@ typedef struct {
   int last_state;
 } encoder_t;
 
-typedef struct {
+typedef struct
+{
   int next_encoder_index;
   repeating_timer_t trigger_timer;
   encoder_t encoders[MAX_ENCODERS];
 } encoder_data;
 encoder_data encoders;
-typedef struct {
+typedef struct
+{
   // a pointer to the command processing function
   void (*command_func)(void);
 } command_descriptor;
@@ -493,8 +507,9 @@ typedef struct {
 /****SENSORS*/
 /*****************************************************************************/
 
-enum SENSOR_TYPES : uint8_t { // Max 255 sensors, but will always fit in a
-                              // single byte!
+enum SENSOR_TYPES : uint8_t
+{ // Max 255 sensors, but will always fit in a
+  // single byte!
   GPS = 0,
   LOAD_CELL = 1,
   MPU_9250 = 2,
@@ -503,7 +518,8 @@ enum SENSOR_TYPES : uint8_t { // Max 255 sensors, but will always fit in a
   ADXL345 = 5,  // 3 axis accel
   MAX_SENSORS
 };
-class Sensor {
+class Sensor
+{
 public:
   virtual void readSensor();
   bool stop = false;
@@ -512,14 +528,16 @@ public:
   SENSOR_TYPES type = SENSOR_TYPES::MAX_SENSORS;
 };
 const int SENSORS_MAX_SETTINGS_A = 6;
-class GPS_Sensor : public Sensor {
+class GPS_Sensor : public Sensor
+{
 public:
   GPS_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
 
 private:
 };
-class ADXL345_Sensor : public Sensor {
+class ADXL345_Sensor : public Sensor
+{
 public:
   ADXL345_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
@@ -530,7 +548,8 @@ private:
   int i2c_addr = 83;
 };
 
-class VEML6040_Sensor : public Sensor {
+class VEML6040_Sensor : public Sensor
+{
 public:
   VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
@@ -541,18 +560,29 @@ private:
   int i2c_addr = 0x10;
 };
 
-class VL53L0X_Sensor : public Sensor {
+class VL53L0X_Sensor : public Sensor
+{
 public:
   VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
 
 private:
-VL53L0X sensor;
-  void init_sequence();
+  VL53L0X sensor;
   int i2c_port = 0;
   int i2c_addr = 0x52;
 };
 
+class MPU9250_Sensor : public Sensor
+{
+public:
+  MPU9250_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+
+private:
+  MPU9250 sensor;
+  void init_sequence();
+  int i2c_port = 0;
+};
 
 void sensor_new();
 void addSensor(uint8_t data[], size_t len);

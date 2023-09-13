@@ -1233,6 +1233,8 @@ void sensor_new()
   else if (type == SENSOR_TYPES::TOF_VL53)
   {
     sensor = new VL53L0X_Sensor(sensor_data);
+  } else if (type == SENSOR_TYPES::MPU_9250) {
+    sensor = new MPU9250_Sensor(sensor_data);
   }
   sensor->type = type;
   sensor->num = sensor_num;
@@ -1345,6 +1347,30 @@ void VL53L0X_Sensor::readSensor()
   std::vector<uint8_t> data = {(uint8_t)(dist >> 8), (uint8_t)(dist & 0xFF)};
   this->writeSensorData(data);
 }
+
+MPU9250_Sensor::MPU9250_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
+  this->sensor.bus = settings[0];
+  this->sensor.setup(0x68);
+}
+void MPU9250_Sensor::readSensor() {
+  if (this->sensor.update()) {
+    std::vector<float> float_data;
+    for(int i = 0; i < 3; i++) {
+      float_data.push_back(this->sensor.getAcc(i));
+    }
+    for(int i = 0; i < 3; i++) {
+      float_data.push_back(this->sensor.getGyro(i));
+    }
+    for(int i = 0; i < 3; i++) {
+      float_data.push_back(this->sensor.getMag(i));
+    }
+    const unsigned char* bytes = reinterpret_cast<const uint8_t*>(&float_data[0]);
+    static_assert(sizeof(float) == 4);
+    std::vector<uint8_t> data(bytes, bytes+sizeof(float)*float_data.size());
+    this->writeSensorData(data);
+  }
+}
+
 
 void Sensor::writeSensorData(std::vector<uint8_t> data)
 {
