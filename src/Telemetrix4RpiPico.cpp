@@ -177,7 +177,8 @@ command_descriptor command_table[] = {{&serial_loopback},
                                       {&spi_cs_control},
                                       {&set_scan_delay},
                                       {&encoder_new},
-                                      {&sensor_new}};
+                                      {&sensor_new},
+                                      {&ping}};
 
 /***************************************************************************
  *                   DEBUGGING FUNCTIONS
@@ -1203,6 +1204,18 @@ void scan_sonars()
   }
 }
 
+void ping() {
+  auto special_num = command_buffer[1];
+  std::vector<uint8_t> out = {
+      0,                  // write len
+      POING_REPORT,      // write type
+      special_num
+  };
+  out[0] = out.size() - 1; // dont count the packet length
+  serial_write(out);
+  // watchdog_update();
+}
+
 // SENSORSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
 void sensor_new()
@@ -1621,12 +1634,12 @@ int main()
   // starting afresh
   led_debug(2, 250);
 
-  watchdog_enable(1000, 1); // Add watchdog requiring trigger every 1s
+  // watchdog_enable(1000, 1); // Add watchdog requiring trigger every 1s
   // infinite loop
   uint32_t last_scan = 0;
   while (true)
   {
-    watchdog_update();
+    // watchdog_update();
     get_next_command();
 
     if (!stop_reports)

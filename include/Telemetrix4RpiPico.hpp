@@ -403,6 +403,7 @@ typedef enum
 #define ENCODER_REPORT 14
 #define DEBUG_PRINT 99
 const int SENSOR_REPORT = 20;
+const int POING_REPORT = 32;
 /***************************************************************
  *          INPUT PIN REPORTING CONTROL SUB COMMANDS
  ***************************************************************/
@@ -503,6 +504,8 @@ typedef struct
   // a pointer to the command processing function
   void (*command_func)(void);
 } command_descriptor;
+
+void ping();
 
 /*****************************************************************************/
 /****SENSORS*/
