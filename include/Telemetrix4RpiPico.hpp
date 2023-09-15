@@ -539,7 +539,7 @@ public:
   void readSensor();
 
 private:
-  uart_inst_t * uart_id = uart0;
+  uart_inst_t *uart_id = uart0;
 };
 class ADXL345_Sensor : public Sensor
 {
@@ -588,11 +588,13 @@ private:
   int i2c_port = 0;
 };
 
-class HX711_Sensor : public Sensor {
-  public:
+class HX711_Sensor : public Sensor
+{
+public:
   HX711_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
-  private:
+
+private:
   HX711 sensor;
 };
 
@@ -603,4 +605,45 @@ void serial_write(std::vector<uint8_t> data);
 std::vector<Sensor *> sensors;
 void reportBytes(std::vector<uint8_t>);
 
+enum MODULE_TYPES : uint8_t
+{ // Max 255 modules, but will always fit in a
+  // single byte!
+  PCA9685 = 0, // 16x 12bit PWM
+  MAX_MODULES
+};
+
+class Module
+{
+public:
+  virtual void readModule();
+  virtual void writeModule(std::vector<uint8_t> data);
+  bool stop = false;
+  void publishData(std::vector<uint8_t> data);
+  int num;
+  MODULE_TYPES type = MODULE_TYPES::MAX_MODULES;
+};
+
+class PCA9685_Module : public Module
+{
+public:
+  PCA9685_Module(std::vector<uint8_t> data);
+  void readModule();
+  void writeModule(std::vector<uint8_t> data);
+  enum REGISTERS : uint8_t
+  {
+    LEDn_DIFF = 0x04,
+    LEDn_ON_L_base = 0x06,
+
+    ALL_LED_ON_L = 0xFE,
+    PRESCALE = 0xFF,
+
+  };
+
+private:
+  int i2c_port = 0;
+  uint8_t addr = 0b0100'0000;
+};
+std::vector<Module*> modules;
+void module_new();
+void module_data();
 #endif // TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H

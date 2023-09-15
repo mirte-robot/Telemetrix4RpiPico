@@ -178,7 +178,9 @@ command_descriptor command_table[] = {{&serial_loopback},
                                       {&set_scan_delay},
                                       {&encoder_new},
                                       {&sensor_new},
-                                      {&ping}};
+                                      {&ping},
+                                      {&module_new},
+                                      {&module_data}};
 
 /***************************************************************************
  *                   DEBUGGING FUNCTIONS
@@ -1051,9 +1053,9 @@ void servo_detach() {}
 /***************************************************
  * Retrieve the next command and process it
  */
+int packet_size; // to get the size of the packets in module_new
 void get_next_command()
 {
-  int packet_size;
   int packet_data;
   command_descriptor command_entry;
 
@@ -1221,11 +1223,10 @@ void ping()
       0,            // write len
       POING_REPORT, // write type
       special_num,
-      random
-      };
+      random};
   out[0] = out.size() - 1; // dont count the packet length
   serial_write(out);
-  
+
   watchdog_update();
 }
 
@@ -1279,6 +1280,10 @@ void readSensors()
   for (auto &sensor : sensors)
   {
     sensor->readSensor();
+  }
+  for (auto &module : modules)
+  {
+    module->readModule();
   }
 }
 
@@ -1481,6 +1486,104 @@ void serial_write(std::vector<uint8_t> data)
   }
   stdio_flush();
 }
+
+/***********************************************/
+/***************MODULES*************************/
+void module_new()
+{
+  const MODULE_TYPES type = (MODULE_TYPES)command_buffer[2];
+  const uint8_t module_num = command_buffer[1];
+  auto data_size = packet_size - 3;
+  std::vector<uint8_t> data;
+  data.insert(data.end(), &command_buffer[3], &command_buffer[data_size]);
+  // std::copy(command_buffer + 3, command_buffer + 3 + data_size,
+  //           sensor_data);
+  if (type >= MODULE_TYPES::MAX_MODULES)
+  {
+    return;
+  }
+  Module *module = nullptr;
+  if (type == MODULE_TYPES::PCA9685)
+  {
+    module = new PCA9685_Module(data);
+  }
+
+  module->type = type;
+  module->num = module_num;
+
+  modules.push_back(module);
+}
+
+void module_data()
+{
+  const uint8_t module_num = command_buffer[1];
+  if (module_num > modules.size())
+  {
+    return;
+  }
+  auto data_size = packet_size - 2;
+  std::vector<uint8_t> data;
+  data.insert(data.end(), &command_buffer[2], &command_buffer[data_size]);
+  modules[module_num]->writeModule(data);
+}
+
+PCA9685_Module::PCA9685_Module(std::vector<uint8_t> data)
+{
+  // init pca
+  this->i2c_port = data[0];
+  write_i2c(this->i2c_port, this->addr, {ALL_LED_ON_L, 0, 0, 0, 0});
+}
+
+void PCA9685_Module::readModule()
+{
+  // no data to read
+}
+
+void PCA9685_Module::writeModule(std::vector<uint8_t> data)
+{
+  // data format:
+  // 0: output #
+  // 1 +2 ON
+  // if more:
+  // 3+4 OFF
+  // update real module
+
+  auto LEDn = data[0];
+  if (LEDn > 15)
+  {
+    return;
+  }
+  data[0] = REGISTERS::LEDn_ON_L_base * LEDn_DIFF * LEDn;
+
+  // outputting data is always low bytes, then high bytes
+  if (data.size() == 3)
+  { // only ON value, set OFF to 0
+    data.push_back(0);
+    data.push_back(0);
+  }
+  else if (data.size() != 5)
+  {
+    return;
+  }
+
+  write_i2c(this->i2c_port, this->addr, data);
+}
+
+void Module::publishData(std::vector<uint8_t> data)
+{
+  std::vector<uint8_t> out = {
+      0,                  // write len
+      SENSOR_REPORT,      // write type
+      (uint8_t)this->num, // write num
+      this->type,         // write sensor type
+  };
+  out.insert(out.end(), data.begin(), data.end());
+  out[0] = out.size() - 1; // dont count the packet length
+
+  serial_write(out);
+}
+
+/**********************ORIGINAL MODULES******************************/
 
 // DHTS sensor?
 void scan_dhts()
