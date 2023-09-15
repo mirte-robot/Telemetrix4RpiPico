@@ -403,7 +403,8 @@ typedef enum
 #define ENCODER_REPORT 14
 #define DEBUG_PRINT 99
 const int SENSOR_REPORT = 20;
-const int POING_REPORT = 32;
+const int PONG_REPORT = 32;
+const int MODULE_REPORT = 34;
 /***************************************************************
  *          INPUT PIN REPORTING CONTROL SUB COMMANDS
  ***************************************************************/
@@ -636,7 +637,9 @@ public:
 
     ALL_LED_ON_L = 0xFE,
     PRESCALE = 0xFF,
-
+    MODE_1 = 0x00,
+    MODE_1_VAL = 0xA0, // auto increment
+    MODE_1_VAL_SLEEP = 0x30
   };
 
 private:

@@ -1221,7 +1221,7 @@ void ping()
   }
   std::vector<uint8_t> out = {
       0,            // write len
-      POING_REPORT, // write type
+      PONG_REPORT, // write type
       special_num,
       random};
   out[0] = out.size() - 1; // dont count the packet length
@@ -1490,12 +1490,12 @@ void serial_write(std::vector<uint8_t> data)
 /***********************************************/
 /***************MODULES*************************/
 void module_new()
-{
+{ 
   const MODULE_TYPES type = (MODULE_TYPES)command_buffer[2];
   const uint8_t module_num = command_buffer[1];
   auto data_size = packet_size - 3;
   std::vector<uint8_t> data;
-  data.insert(data.end(), &command_buffer[3], &command_buffer[data_size]);
+  data.insert(data.end(), &command_buffer[3], &command_buffer[packet_size]);
   // std::copy(command_buffer + 3, command_buffer + 3 + data_size,
   //           sensor_data);
   if (type >= MODULE_TYPES::MAX_MODULES)
@@ -1521,9 +1521,9 @@ void module_data()
   {
     return;
   }
-  auto data_size = packet_size - 2;
+  auto data_size = packet_size - 2; 
   std::vector<uint8_t> data;
-  data.insert(data.end(), &command_buffer[2], &command_buffer[data_size]);
+  data.insert(data.end(), &command_buffer[2], &command_buffer[packet_size]);
   modules[module_num]->writeModule(data);
 }
 
@@ -1531,6 +1531,15 @@ PCA9685_Module::PCA9685_Module(std::vector<uint8_t> data)
 {
   // init pca
   this->i2c_port = data[0];
+  write_i2c(this->i2c_port, this->addr, {MODE_1, MODE_1_VAL_SLEEP}); // go to sleep for prescaler
+  
+  const auto clock = 25'000'000;
+  const auto update_rate = 50;
+  constexpr int prescale = (int)((clock)/(4096*update_rate))-1;
+  // static_assert(prescale == 121);
+  write_i2c(this->i2c_port, this->addr, {PRESCALE, prescale});
+  write_i2c(this->i2c_port, this->addr, {MODE_1, MODE_1_VAL});  // restart and auto increment
+  sleep_us(500);
   write_i2c(this->i2c_port, this->addr, {ALL_LED_ON_L, 0, 0, 0, 0});
 }
 
@@ -1553,8 +1562,7 @@ void PCA9685_Module::writeModule(std::vector<uint8_t> data)
   {
     return;
   }
-  data[0] = REGISTERS::LEDn_ON_L_base * LEDn_DIFF * LEDn;
-
+  data[0] = REGISTERS::LEDn_ON_L_base + LEDn_DIFF * LEDn;
   // outputting data is always low bytes, then high bytes
   if (data.size() == 3)
   { // only ON value, set OFF to 0
@@ -1566,14 +1574,14 @@ void PCA9685_Module::writeModule(std::vector<uint8_t> data)
     return;
   }
 
-  write_i2c(this->i2c_port, this->addr, data);
+  auto ok = write_i2c(this->i2c_port, this->addr, data);
 }
 
 void Module::publishData(std::vector<uint8_t> data)
 {
   std::vector<uint8_t> out = {
       0,                  // write len
-      SENSOR_REPORT,      // write type
+      MODULE_REPORT,      // write type
       (uint8_t)this->num, // write num
       this->type,         // write sensor type
   };
