@@ -1401,7 +1401,11 @@ void VEML6040_Sensor::readSensor()
 VL53L0X_Sensor::VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A])
 {
   this->sensor.setBus(settings[0]);
-  this->sensor.init();
+  bool ok = this->sensor.init();
+  if(!ok) {
+    this->stop = true;
+    return;
+  }
   this->sensor.startContinuous();
 }
 
