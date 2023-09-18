@@ -1534,17 +1534,18 @@ void module_data()
 PCA9685_Module::PCA9685_Module(std::vector<uint8_t> data)
 {
   // init pca
+  write_i2c(this->i2c_port, 00, {06}); // reset
+  sleep_us(100);
   this->i2c_port = data[0];
   write_i2c(this->i2c_port, this->addr, {MODE_1, MODE_1_VAL_SLEEP}); // go to sleep for prescaler
   
   const auto clock = 25'000'000;
   const auto update_rate = 50;
-  constexpr int prescale = (int)((clock)/(4096*update_rate))-1;
-  // static_assert(prescale == 121);
+  constexpr int prescale = (int)((clock)/(4096*update_rate))-1; // For servos
+  static_assert(prescale == 121);
   write_i2c(this->i2c_port, this->addr, {PRESCALE, prescale});
   write_i2c(this->i2c_port, this->addr, {MODE_1, MODE_1_VAL});  // restart and auto increment
-  sleep_us(500);
-  write_i2c(this->i2c_port, this->addr, {ALL_LED_ON_L, 0, 0, 0, 0});
+  sleep_ms(100);
 }
 
 void PCA9685_Module::readModule()

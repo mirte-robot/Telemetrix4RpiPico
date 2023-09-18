@@ -635,8 +635,7 @@ public:
     LEDn_DIFF = 0x04,
     LEDn_ON_L_base = 0x06,
 
-    ALL_LED_ON_L = 0xFE,
-    PRESCALE = 0xFF,
+    PRESCALE = 0xFE,
     MODE_1 = 0x00,
     MODE_1_VAL = 0xA0, // auto increment
     MODE_1_VAL_SLEEP = 0x30
