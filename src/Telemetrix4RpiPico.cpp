@@ -1401,6 +1401,7 @@ void VEML6040_Sensor::readSensor()
 VL53L0X_Sensor::VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A])
 {
   this->sensor.setBus(settings[0]);
+  this->sensor.setTimeout(100); // Don't block the reading when there is no sensor
   bool ok = this->sensor.init();
   if(!ok) {
     this->stop = true;
@@ -1411,7 +1412,13 @@ VL53L0X_Sensor::VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A])
 
 void VL53L0X_Sensor::readSensor()
 {
+  if(this->stop) {
+    return;
+  }
   auto dist = this->sensor.readRangeContinuousMillimeters();
+  if(dist == 65535) {
+    this->stop = true;
+  }
   std::vector<uint8_t> data = {(uint8_t)(dist >> 8), (uint8_t)(dist & 0xFF)};
   this->writeSensorData(data);
 }
