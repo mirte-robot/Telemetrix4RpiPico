@@ -44,10 +44,8 @@ jobs:
           - name: Build
             run: docker run -v ./:/project/src/ pico-builder-container
             
-        #   - name: Copy out .uf2 file
-        #     run: docker cp pico-builder-container:/project/src/build/${APP_NAME}.uf2 ./${APP_NAME}.uf2
           - name: Copy uf2 file
-            run: cp ./build2/${APP_NAME}.uf2 ./
+            run: cp ./build2/Telemetrix4RpiPico.uf2 ./
 
           - name: Put environment variable into the env context
             run: echo "app_name=$APP_NAME" >> $GITHUB_ENV
@@ -56,7 +54,7 @@ jobs:
             with:
               name: dist
               path: |
-                ${app_name}.uf2
+                Telemetrix4RpiPico.uf2
             
         #   - name: Push to release
         #     uses: softprops/action-gh-release@v1
