@@ -40,12 +40,9 @@ jobs:
                 tags: pico-builder-container:latest
                 cache-from: type=local,src=/tmp/.buildx-cache
                 cache-to: type=local,dest=/tmp/.buildx-cache
-
-          - name: Build Docker image
-            run: docker build -t pico-builder-image .
             
           - name: Build
-            run: docker run -v ./:/project/src/ pico-builder-image
+            run: docker run -v ./:/project/src/ pico-builder-container
             
         #   - name: Copy out .uf2 file
         #     run: docker cp pico-builder-container:/project/src/build/${APP_NAME}.uf2 ./${APP_NAME}.uf2
