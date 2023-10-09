@@ -56,7 +56,7 @@ jobs:
             with:
               name: dist
               path: |
-                ${APP_NAME}.uf2
+                ${app_name}.uf2
             
         #   - name: Push to release
         #     uses: softprops/action-gh-release@v1
