@@ -29,3 +29,5 @@ PC. A complete [User's Guide](https://mryslab.github.io/telemetrix-rpi-pico/) is
 install and use both the server and client.
 
 To install the server, follow these [installation instructions](https://mryslab.github.io/telemetrix-rpi-pico/install_pico_server/).
+
+Test push
