@@ -73,7 +73,7 @@ uint8_t pixel_buffer[MAXIMUM_NUM_NEOPIXELS][3];
 uint actual_number_of_pixels;
 
 // scan delay
-uint8_t scan_delay = 10;
+uint8_t scan_delay = 100;
 
 static inline void put_pixel(uint32_t pixel_grb)
 {
@@ -1267,6 +1267,8 @@ void sensor_new()
   else if (type == SENSOR_TYPES::LOAD_CELL)
   {
     sensor = new HX711_Sensor(sensor_data);
+  } else if (type == SENSOR_TYPES::INA226a) {
+    sensor = new INA226_Sensor(sensor_data);
   }
 
   sensor->type = type;
@@ -1466,6 +1468,38 @@ void HX711_Sensor::readSensor()
                               reinterpret_cast<const char *>(&reading) + sizeof(reading));
     this->writeSensorData(data);
   }
+}
+
+INA226_Sensor::INA226_Sensor(uint8_t sensor_data[SENSORS_MAX_SETTINGS_A]) {
+  auto port = sensor_data[0];
+  this->sensor = new INA226(0x40, port);
+  if (!  this->sensor->begin()){
+    this->stop = true;
+    return;
+  }
+  // this->sensor->setMaxCurrentShunt(1, 0.002);
+  // this->sensor->setAverage(10);
+  // this->sensor->setBusVoltageConversionTime(10);
+  // this->sensor->setShuntVoltageConversionTime(10);
+  // this->sensor->setModeShuntBusContinuous();
+}
+
+void INA226_Sensor::readSensor() {
+  if(this->stop) {
+    return;
+  }
+  std::vector<float> float_data;
+  static float  i = 0.0;
+  i += 0.1;
+  float f = this->sensor->getBusVoltage();
+  float_data.push_back(f);
+  send_debug_info((int)f, (int)(f*100)%100);
+  float_data.push_back(this->sensor->getCurrent());
+  // float_data.push_back(i);
+  const unsigned char *bytes = reinterpret_cast<const uint8_t *>(&float_data[0]);
+  static_assert(sizeof(float) == 4);
+  std::vector<uint8_t> data(bytes, bytes + sizeof(float) * float_data.size());
+  this->writeSensorData(data);
 }
 
 void Sensor::writeSensorData(std::vector<uint8_t> data)

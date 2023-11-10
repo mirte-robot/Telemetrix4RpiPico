@@ -25,6 +25,7 @@
 #include "VL53L0.hpp"
 #include "MPU9250.hpp"
 #include "HX711.hpp"
+#include "INA226.hpp"
 /************************** FORWARD REFERENCES ***********************
 We define all functions here as extern to provide allow
 forward referencing.
@@ -521,6 +522,7 @@ enum SENSOR_TYPES : uint8_t
   TOF_VL53 = 3,
   VEML6040 = 4, // Color sensor
   ADXL345 = 5,  // 3 axis accel
+  INA226a = 6,
   MAX_SENSORS
 };
 class Sensor
@@ -597,6 +599,14 @@ public:
 
 private:
   HX711 sensor;
+};
+
+class INA226_Sensor : public Sensor{
+public:
+  INA226_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  private:
+  INA226* sensor;
 };
 
 void sensor_new();
