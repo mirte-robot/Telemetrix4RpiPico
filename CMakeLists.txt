@@ -11,6 +11,7 @@ add_executable(Telemetrix4RpiPico
         src/i2c_helpers.cpp
         src/HX711.cpp
         src/INA226.cpp
+        src/INA226v2.cpp
 )
 target_include_directories(Telemetrix4RpiPico PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/)
 # target_compile_options(Telemetrix4RpiPico PRIVATE -Wall -Wextra -Wpedantic -Werror)

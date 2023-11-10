@@ -25,7 +25,7 @@
 #include "VL53L0.hpp"
 #include "MPU9250.hpp"
 #include "HX711.hpp"
-#include "INA226.hpp"
+#include "INA226v2.hpp"
 /************************** FORWARD REFERENCES ***********************
 We define all functions here as extern to provide allow
 forward referencing.
@@ -606,7 +606,7 @@ public:
   INA226_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
   private:
-  INA226* sensor;
+  INA226_WE* sensor;
 };
 
 void sensor_new();
