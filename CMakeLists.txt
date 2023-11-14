@@ -3,6 +3,10 @@ set(CMAKE_CXX_STANDARD 14)
 
 set(PICO_SDK_FETCH_FROM_GIT on)
 include(pico_sdk_import.cmake)
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+    set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
+endif()
+
 project(Telemetrix4RpiPico)
 pico_sdk_init()
 add_executable(Telemetrix4RpiPico
@@ -22,3 +26,12 @@ pico_add_extra_outputs(Telemetrix4RpiPico)
 target_link_libraries(Telemetrix4RpiPico pico_stdlib hardware_pwm
         pico_unique_id hardware_watchdog hardware_adc hardware_i2c
         hardware_pio hardware_clocks hardware_spi)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+add_custom_target(lint
+        COMMAND sh -c "run-clang-tidy ${CMAKE_SOURCE_DIR}/src/Telemetrix4RpiPico.cpp -checks=`tr '\\n' , <${CMAKE_SOURCE_DIR}/checks.txt` >lint.out 2>lint.err"
+        COMMAND sh -c "grep warning: lint.out || true"
+        COMMAND ls -lh ${CMAKE_BINARY_DIR}/lint.out
+        VERBATIM
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
