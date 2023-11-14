@@ -1472,16 +1472,16 @@ void HX711_Sensor::readSensor()
 
 INA226_Sensor::INA226_Sensor(uint8_t sensor_data[SENSORS_MAX_SETTINGS_A]) {
   auto port = sensor_data[0];
-  this->sensor = new INA226_WE(0x40, port);
+  auto addr = sensor_data[1];
+  if (addr < 0b1000000 || addr > 0b1001111) {
+    addr = 0b1000000;
+  }
+  this->sensor = new INA226_WE(addr, port);
   if (!  this->sensor->init()){
     this->stop = true;
     return;
   }
-  // this->sensor->setMaxCurrentShunt(1, 0.002);
-  // this->sensor->setAverage(10);
-  // this->sensor->setBusVoltageConversionTime(10);
-  // this->sensor->setShuntVoltageConversionTime(10);
-  // this->sensor->setModeShuntBusContinuous();
+  this->sensor->setResistorRange(0.002, 20);
 }
 
 void INA226_Sensor::readSensor() {
@@ -1489,13 +1489,9 @@ void INA226_Sensor::readSensor() {
     return;
   }
   std::vector<float> float_data;
-  // static float  i = 0.0;
-  // i += 0.1;
   float f = this->sensor->getBusVoltage_V();
   float_data.push_back(f);
-  send_debug_info((int)f, (int)(f*100)%100);
   float_data.push_back(this->sensor->getCurrent_A());
-  // float_data.push_back(i);
   const unsigned char *bytes = reinterpret_cast<const uint8_t *>(&float_data[0]);
   static_assert(sizeof(float) == 4);
   std::vector<uint8_t> data(bytes, bytes + sizeof(float) * float_data.size());
