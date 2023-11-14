@@ -249,6 +249,7 @@ void set_pin_mode()
     the_digital_pins[pin].pin_mode = mode;
     the_digital_pins[pin].reporting_enabled =
         command_buffer[SET_PIN_MODE_DIGITAL_IN_REPORTING_STATE];
+    the_digital_pins[pin].last_value = 0xFF;
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_IN);
     if (mode == DIGITAL_INPUT_PULL_UP)
