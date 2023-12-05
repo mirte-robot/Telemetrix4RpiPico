@@ -528,7 +528,7 @@ enum SENSOR_TYPES : uint8_t
 class Sensor
 {
 public:
-  virtual void readSensor();
+  virtual void readSensor() = 0;
   bool stop = false;
   void writeSensorData(std::vector<uint8_t> data);
   int num;
@@ -601,12 +601,14 @@ private:
   HX711 sensor;
 };
 
-class INA226_Sensor : public Sensor{
+class INA226_Sensor : public Sensor
+{
 public:
   INA226_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
-  private:
-  INA226_WE* sensor;
+
+private:
+  INA226_WE *sensor;
 };
 
 void sensor_new();
@@ -626,8 +628,8 @@ enum MODULE_TYPES : uint8_t
 class Module
 {
 public:
-  virtual void readModule();
-  virtual void writeModule(std::vector<uint8_t> data);
+  virtual void readModule() = 0;
+  virtual void writeModule(std::vector<uint8_t> data) = 0;
   bool stop = false;
   void publishData(std::vector<uint8_t> data);
   int num;
@@ -655,7 +657,7 @@ private:
   int i2c_port = 0;
   uint8_t addr = 0b0100'0000;
 };
-std::vector<Module*> modules;
+std::vector<Module *> modules;
 void module_new();
 void module_data();
 #endif // TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
