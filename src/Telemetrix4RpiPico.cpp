@@ -1549,6 +1549,8 @@ void module_new()
   if (type == MODULE_TYPES::PCA9685)
   {
     module = new PCA9685_Module(data);
+  }else if (type == MODULE_TYPES::HIWONDER_SERVO) {
+    module = new Hiwonder_Servo(data);
   }
 
   module->type = type;
@@ -1625,6 +1627,31 @@ void PCA9685_Module::writeModule(std::vector<uint8_t> data)
 
   auto ok = write_i2c(this->i2c_port, this->addr, data);
 }
+
+Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t> data) {
+  // get uart port
+  // get uart rx
+  // get uart tx
+  this->bus = new HiwonderBus();
+  this->bus->begin(uart1, 4,5);
+  this->servos.push_back(new HiwonderServo(this->bus, 3));
+  this->servos.push_back(new HiwonderServo(this->bus, 4));
+}
+
+void Hiwonder_Servo::writeModule(std::vector<uint8_t> data) {
+  // select:
+    // add servo
+    // set servo, angle and time
+    // set multiple servos
+    // do other stuff
+  this->servos[1]->move_time(10, 1000);
+}
+
+void Hiwonder_Servo::readModule()
+{
+  // no data to read
+}
+
 
 void Module::publishData(std::vector<uint8_t> data)
 {

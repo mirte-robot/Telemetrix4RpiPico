@@ -26,6 +26,7 @@
 #include "MPU9250.hpp"
 #include "HX711.hpp"
 #include "INA226v2.hpp"
+#include "HiwonderServo.hpp"
 /************************** FORWARD REFERENCES ***********************
 We define all functions here as extern to provide allow
 forward referencing.
@@ -622,6 +623,7 @@ enum MODULE_TYPES : uint8_t
 { // Max 255 modules, but will always fit in a
   // single byte!
   PCA9685 = 0, // 16x 12bit PWM
+  HIWONDER_SERVO = 1,
   MAX_MODULES
 };
 
@@ -657,6 +659,19 @@ private:
   int i2c_port = 0;
   uint8_t addr = 0b0100'0000;
 };
+
+class Hiwonder_Servo : public Module
+{
+public:
+  Hiwonder_Servo(std::vector<uint8_t> data);
+  void readModule();
+  void writeModule(std::vector<uint8_t> data);
+
+private:
+  HiwonderBus *bus;
+  std::vector<HiwonderServo *> servos;
+};
+
 std::vector<Module *> modules;
 void module_new();
 void module_data();
