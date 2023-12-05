@@ -45,3 +45,9 @@ int read_i2c(int i2c_port, int addr, const std::vector<uint8_t> &write_bytes,
 
     return i2c_sdk_return == bytes_to_read;
 }
+
+
+uint32_t millis()
+{
+	return time_us_32() / 1000;
+}

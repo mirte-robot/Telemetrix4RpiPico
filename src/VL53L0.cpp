@@ -7,11 +7,6 @@
 // or paraphrased from the API source code, API user manual (UM2039), and the
 // VL53L0X datasheet.
 
-uint16_t millis()
-{
-    return time_us_32() / 1000;
-}
-
 // Defines /////////////////////////////////////////////////////////////////////
 
 // The Arduino two-wire interface uses a 7-bit number for the address,
