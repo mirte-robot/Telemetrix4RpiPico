@@ -278,6 +278,10 @@ public:
     int32_t maxCentDegrees = 240000;
     int32_t minCentDegrees = 0;
 
+    // Used for telemetrix to only publish on change:
+    int32_t lastPublishedPosition = 0;
+
+
     uint8_t _id = BROADCAST_ID;
     HiwonderServo(HiwonderBus *bus, int id) : _bus(bus), _id(id)
     {
@@ -372,11 +376,8 @@ public:
 
             if (isCommandOk())
             {
-                // Serial.println("Set Limit MotorID:" + String(_id) + " Min set " + String(((lower * 24) + staticOffset)) + " max = " + String((upper * 24) + staticOffset));
                 return;
             }
-            // if (_bus->_debug)
-            // Serial.println("Set Limits Failed ID " + String(_id) + " Lower " + String(lower) + " upper: " + String(upper) + " Retry #" + String(i));
         }
     }
     int32_t getMinCentDegrees()
@@ -445,7 +446,7 @@ public:
      * Length: 7
      Parameter 1: lower 8 bits of angle value
      Parameter 2: higher 8 bits of angle value.range 0~100. corresponding to the
-     servo angle of 0 ~ 240 °, that means the minimum angle of the servo can be
+     servo angle of 0 - 240 °, that means the minimum angle of the servo can be
      varied is 0.24 degree.
      Parameter 3: lower 8 bits of time value
      Parameter 4: higher 8 bits of time value. the range of time is 0~30000ms.

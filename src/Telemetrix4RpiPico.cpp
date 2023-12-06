@@ -1549,7 +1549,9 @@ void module_new()
   if (type == MODULE_TYPES::PCA9685)
   {
     module = new PCA9685_Module(data);
-  }else if (type == MODULE_TYPES::HIWONDER_SERVO) {
+  }
+  else if (type == MODULE_TYPES::HIWONDER_SERVO)
+  {
     module = new Hiwonder_Servo(data);
   }
 
@@ -1603,7 +1605,7 @@ void PCA9685_Module::writeModule(std::vector<uint8_t> data)
 {
   // data format:
   // 0: output #
-  // 1 +2 ON
+  // 1 + 2 ON
   // if more:
   // 3+4 OFF
   // update real module
@@ -1628,30 +1630,104 @@ void PCA9685_Module::writeModule(std::vector<uint8_t> data)
   auto ok = write_i2c(this->i2c_port, this->addr, data);
 }
 
-Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t> data) {
-  // get uart port
-  // get uart rx
-  // get uart tx
+/**
+ * When creating a servo chain:
+ * Byte1: 0: uart0, 1: uart1
+ * Byte2: rx pin
+ * Byte3: tx pin
+ * Byte4: wanted amount of servos
+ * Byte5-N: ids of servos
+ */
+Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t> data)
+{
+
+  auto uart = data[0] == 0 ? uart0 : uart1;
+  auto rxPin = data[1];
+  auto txPin = data[2];
+  auto servos = data[3];
+  if(data.size() != servos+4) {
+    return;
+  }
   this->bus = new HiwonderBus();
-  this->bus->begin(uart1, 4,5);
-  this->servos.push_back(new HiwonderServo(this->bus, 3));
-  this->servos.push_back(new HiwonderServo(this->bus, 4));
+
+  this->bus->begin(uart, rxPin, txPin);
+  this->servos.reserve(servos);
+  for (auto i = 0; i < servos; i++)
+  {
+    auto id = data[4 + i];
+    auto servo = new HiwonderServo(this->bus, id);
+    servo->initialize();
+    this->servos.push_back(servo);
+  }
+  this->bus->enableAll();
 }
 
-void Hiwonder_Servo::writeModule(std::vector<uint8_t> data) {
-  // select:
-    // add servo
-    // set servo, angle and time
-    // set multiple servos
-    // do other stuff
-  this->servos[1]->move_time(10, 1000);
+bool Hiwonder_Servo::writeSingle(std::vector<uint8_t> data, size_t i, bool single)
+{
+  const int numBytes = 5;
+  auto servoI = data[1 + numBytes * i];
+  auto angle = ((int32_t)data[2 + numBytes * i] << 8 ) | data[3+numBytes*i];
+  auto time = ((int16_t)data[4 + numBytes * i] << 8) | data[5 + numBytes * i];
+
+  if (servoI >= this->servos.size())
+  {
+    return false;
+  }
+  if (single)
+  {
+    this->servos[servoI]->move_time(angle, time);
+  }
+  else
+  {
+    this->servos[servoI]->move_time_and_wait_for_sync(angle, time);
+  }
+  return true;
+}
+
+void Hiwonder_Servo::writeModule(std::vector<uint8_t> data)
+{
+  auto count = data[0];
+  // If just one, directly move, otherwise wait for the other commands to finish before moving
+  if (count == 1)
+  {
+    this->writeSingle(data, 0, true);
+  }
+  else
+  {
+    if(data.size() != count*5+1) {
+      return;
+    }
+    for (auto i = 0; i < count; i++)
+    {
+      this->writeSingle(data, i, false);
+    }
+    this->bus->move_sync_start();
+  }
 }
 
 void Hiwonder_Servo::readModule()
 {
-  // no data to read
+  // read angle, temp?
+  std::vector<uint8_t> data;
+  data.reserve(this->servos.size() * 5);
+  // only update position when changed
+  for (auto i = 0; auto servo : this->servos)
+  {
+    auto pos = servo->pos_read();
+    if (pos != servo->lastPublishedPosition)
+    {
+      data.push_back(i);
+      // Pos is 0...24000 -> 15 bits
+      data.insert(data.end(), {(uint8_t)((pos >> 8) & 0xff), (uint8_t)(pos & 0xff)});
+    }
+    servo->lastPublishedPosition = pos;
+    i++;
+  }
+  if (data.size() > 0)
+  {
+    this->publishData(data);
+  }
 }
-
 
 void Module::publishData(std::vector<uint8_t> data)
 {

@@ -666,6 +666,7 @@ public:
   Hiwonder_Servo(std::vector<uint8_t> data);
   void readModule();
   void writeModule(std::vector<uint8_t> data);
+  bool writeSingle(std::vector<uint8_t> data, size_t i, bool single);
 
 private:
   HiwonderBus *bus;
