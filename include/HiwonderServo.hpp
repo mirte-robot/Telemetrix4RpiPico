@@ -1,3 +1,4 @@
+// Modified code from https://github.com/madhephaestus/lx16a-servo
 #pragma once
 #include "pico/stdlib.h"
 #include "hardware/uart.h"

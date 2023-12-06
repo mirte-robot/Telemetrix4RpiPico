@@ -1,7 +1,5 @@
 #!/bin/bash
-# cd /project/src/
-ls
-ls ..
+set -e
 mkdir build2/
 ls
 cd build2

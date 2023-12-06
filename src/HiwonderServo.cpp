@@ -1,3 +1,5 @@
+// Modified code from https://github.com/madhephaestus/lx16a-servo
+
 #include "HiwonderServo.hpp"
 #include <stdio.h>
 #include "pico/stdlib.h"
