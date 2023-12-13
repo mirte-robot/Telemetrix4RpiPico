@@ -1554,6 +1554,10 @@ void module_new()
   {
     module = new Hiwonder_Servo(data);
   }
+  else if (type == MODULE_TYPES::SHUTDOWN_RELAY)
+  {
+    module = new Shutdown_Relay(data);
+  }
 
   module->type = type;
   module->num = module_num;
@@ -1645,7 +1649,8 @@ Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t> data)
   auto rxPin = data[1];
   auto txPin = data[2];
   auto servos = data[3];
-  if(data.size() != servos+4) {
+  if (data.size() != servos + 4)
+  {
     return;
   }
   this->bus = new HiwonderBus();
@@ -1666,7 +1671,7 @@ bool Hiwonder_Servo::writeSingle(std::vector<uint8_t> data, size_t i, bool singl
 {
   const int numBytes = 5;
   auto servoI = data[1 + numBytes * i];
-  auto angle = ((int32_t)data[2 + numBytes * i] << 8 ) | data[3+numBytes*i];
+  auto angle = ((int32_t)data[2 + numBytes * i] << 8) | data[3 + numBytes * i];
   auto time = ((int16_t)data[4 + numBytes * i] << 8) | data[5 + numBytes * i];
 
   if (servoI >= this->servos.size())
@@ -1694,7 +1699,8 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> data)
   }
   else
   {
-    if(data.size() != count*5+1) {
+    if (data.size() != count * 5 + 1)
+    {
       return;
     }
     for (auto i = 0; i < count; i++)
@@ -1728,6 +1734,54 @@ void Hiwonder_Servo::readModule()
     this->publishData(data);
   }
 }
+
+Shutdown_Relay::Shutdown_Relay(std::vector<uint8_t> data)
+{
+  this->pin = data[0];
+  this->enable_on = data[1];
+  gpio_init(this->pin);
+  gpio_set_dir(this->pin, GPIO_OUT);
+  gpio_put(this->pin, this->enable_on);
+  this->start_time = time_us_32();
+  this->enabled = false;
+}
+
+void Shutdown_Relay::readModule()
+{
+  if (this->enabled)
+  {
+    if (time_us_32() - this->start_time > 30'000'000) // 30s
+    {
+      gpio_put(this->pin, !this->enable_on);
+      // relay will be turned off and power will be cut
+    }
+  }
+}
+
+void disable_watchdog() {
+  hw_clear_bits(&watchdog_hw->ctrl, WATCHDOG_CTRL_ENABLE_BITS);
+}
+
+void enable_watchdog() {
+  watchdog_enable(1000, 1); // Add watchdog again requiring trigger every 1s
+  watchdog_update();
+}
+void Shutdown_Relay::writeModule(std::vector<uint8_t> data)
+{
+  if (data[0] == 1) // trigger to start the countdown
+  {
+    this->start_time = time_us_32();
+    this->enabled = true;
+    disable_watchdog();
+  } else {
+    this->enabled = false;
+    enable_watchdog();
+  }
+}
+
+
+
+
 
 void Module::publishData(std::vector<uint8_t> data)
 {

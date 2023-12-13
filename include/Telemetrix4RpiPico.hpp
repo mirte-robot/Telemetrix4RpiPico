@@ -624,6 +624,7 @@ enum MODULE_TYPES : uint8_t
   // single byte!
   PCA9685 = 0, // 16x 12bit PWM
   HIWONDER_SERVO = 1,
+  SHUTDOWN_RELAY = 2,
   MAX_MODULES
 };
 
@@ -671,6 +672,20 @@ public:
 private:
   HiwonderBus *bus;
   std::vector<HiwonderServo *> servos;
+};
+
+class Shutdown_Relay : public Module
+{
+public:
+  Shutdown_Relay(std::vector<uint8_t> data);
+  void readModule();
+  void writeModule(std::vector<uint8_t> data);
+
+private:
+  int pin = 0;
+  bool enabled = false;
+  bool enable_on = true;
+  decltype(time_us_32()) start_time = 0;
 };
 
 std::vector<Module *> modules;
