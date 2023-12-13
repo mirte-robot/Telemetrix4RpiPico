@@ -14,7 +14,6 @@ add_executable(Telemetrix4RpiPico
         src/VL53L0.cpp
         src/i2c_helpers.cpp
         src/HX711.cpp
-        src/INA226.cpp
         src/INA226v2.cpp
         src/HiwonderServo.cpp
 )

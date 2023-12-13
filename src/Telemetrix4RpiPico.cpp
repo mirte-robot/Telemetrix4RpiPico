@@ -1489,14 +1489,21 @@ INA226_Sensor::INA226_Sensor(uint8_t sensor_data[SENSORS_MAX_SETTINGS_A])
     return;
   }
   this->sensor->setResistorRange(0.002, 20);
+  this->sensor->setAverage(INA226_AVERAGES::AVERAGE_1024);
 }
 
 void INA226_Sensor::readSensor()
 {
+  static uint32_t last_scan = 0;
   if (this->stop)
   {
     return;
   }
+  if (time_us_32() - last_scan < 500'000) // update every 500ms, sensor has new data every 1.1ms*1024
+  {
+    return;
+  }
+  last_scan = time_us_32();
   std::vector<float> float_data;
   float f = this->sensor->getBusVoltage_V();
   float_data.push_back(f);
@@ -1758,11 +1765,13 @@ void Shutdown_Relay::readModule()
   }
 }
 
-void disable_watchdog() {
+void disable_watchdog()
+{
   hw_clear_bits(&watchdog_hw->ctrl, WATCHDOG_CTRL_ENABLE_BITS);
 }
 
-void enable_watchdog() {
+void enable_watchdog()
+{
   watchdog_enable(1000, 1); // Add watchdog again requiring trigger every 1s
   watchdog_update();
 }
@@ -1773,15 +1782,13 @@ void Shutdown_Relay::writeModule(std::vector<uint8_t> data)
     this->start_time = time_us_32();
     this->enabled = true;
     disable_watchdog();
-  } else {
+  }
+  else
+  {
     this->enabled = false;
     enable_watchdog();
   }
 }
-
-
-
-
 
 void Module::publishData(std::vector<uint8_t> data)
 {
