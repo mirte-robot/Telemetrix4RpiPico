@@ -1215,7 +1215,7 @@ void ping()
   auto special_num = command_buffer[1];
   if (!watchdog_enabled)
   {
-    watchdog_enable(1000, 1); // Add watchdog requiring trigger every 1s
+    watchdog_enable(WATCHDOG_TIME, 1); // Add watchdog requiring trigger every 5s
     watchdog_enabled = true;
     srand(time_us_32());
     random = rand() % 100; // create some random number to let computer side know it is the same run
@@ -1495,11 +1495,11 @@ INA226_Sensor::INA226_Sensor(uint8_t sensor_data[SENSORS_MAX_SETTINGS_A])
 void INA226_Sensor::readSensor()
 {
   static uint32_t last_scan = 0;
-  if (this->stop)
+ if (this->stop)
   {
     return;
   }
-  if (time_us_32() - last_scan < 500'000) // update every 500ms, sensor has new data every 1.1ms*1024
+  if (time_us_32() - last_scan <= 500'000) // update every 500ms, sensor has new data every 1.1ms*1024
   {
     return;
   }
@@ -1772,7 +1772,7 @@ void disable_watchdog()
 
 void enable_watchdog()
 {
-  watchdog_enable(1000, 1); // Add watchdog again requiring trigger every 1s
+  watchdog_enable(WATCHDOG_TIME, 1); // Add watchdog again requiring trigger every 5s
   watchdog_update();
 }
 void Shutdown_Relay::writeModule(std::vector<uint8_t> data)

@@ -691,4 +691,7 @@ private:
 std::vector<Module *> modules;
 void module_new();
 void module_data();
+
+const auto WATCHDOG_TIME = 5'000; // 5s timeout
+
 #endif // TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
