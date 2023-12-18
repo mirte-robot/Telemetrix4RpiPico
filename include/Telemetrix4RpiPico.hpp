@@ -632,9 +632,9 @@ class Module
 {
 public:
   virtual void readModule() = 0;
-  virtual void writeModule(std::vector<uint8_t> data) = 0;
+  virtual void writeModule(std::vector<uint8_t> &data) = 0;
   bool stop = false;
-  void publishData(std::vector<uint8_t> data);
+  void publishData(std::vector<uint8_t> &data);
   int num;
   MODULE_TYPES type = MODULE_TYPES::MAX_MODULES;
 };
@@ -642,9 +642,10 @@ public:
 class PCA9685_Module : public Module
 {
 public:
-  PCA9685_Module(std::vector<uint8_t> data);
+  PCA9685_Module(std::vector<uint8_t> &data);
   void readModule();
-  void writeModule(std::vector<uint8_t> data);
+  void writeModule(std::vector<uint8_t> &data);
+  void updateOne(std::vector<uint8_t> &data, size_t i);
   enum REGISTERS : uint8_t
   {
     LEDn_DIFF = 0x04,
@@ -664,10 +665,10 @@ private:
 class Hiwonder_Servo : public Module
 {
 public:
-  Hiwonder_Servo(std::vector<uint8_t> data);
+  Hiwonder_Servo(std::vector<uint8_t> &data);
   void readModule();
-  void writeModule(std::vector<uint8_t> data);
-  bool writeSingle(std::vector<uint8_t> data, size_t i, bool single);
+  void writeModule(std::vector<uint8_t> &data);
+  bool writeSingle(std::vector<uint8_t> &data, size_t i, bool single);
 
 private:
   HiwonderBus *bus;
@@ -677,9 +678,9 @@ private:
 class Shutdown_Relay : public Module
 {
 public:
-  Shutdown_Relay(std::vector<uint8_t> data);
+  Shutdown_Relay(std::vector<uint8_t> &data);
   void readModule();
-  void writeModule(std::vector<uint8_t> data);
+  void writeModule(std::vector<uint8_t> &data);
 
 private:
   int pin = 0;
