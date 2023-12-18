@@ -1502,7 +1502,7 @@ void INA226_Sensor::readSensor()
     send_debug_info(12, 14);
     return;
   }
-  if (time_us_32() - last_scan <= 500'000) // update every 500ms, sensor has new data every 1.1ms*1024
+  if (time_us_32() - last_scan <= 200'000) // update every 200ms, sensor has new data every 1.1ms*256
   {
     return;
   }
@@ -1591,7 +1591,7 @@ void module_data()
 PCA9685_Module::PCA9685_Module(std::vector<uint8_t> &data)
 {
   // init pca
-  write_i2c(this->i2c_port, 00, {06}); // reset
+  // write_i2c(this->i2c_port, 00, {06}); // reset
   sleep_us(100);
   this->i2c_port = data[0];
   auto update_rate = 50;
@@ -1618,17 +1618,17 @@ void PCA9685_Module::readModule()
 void PCA9685_Module::updateOne(std::vector<uint8_t> &dataList, size_t i)
 {
   std::array<uint8_t, 5> data;
-  auto LEDn = dataList[0+i*5];
+  auto LEDn = dataList[0 + i * 5];
   if (LEDn > 15)
   {
     return;
   }
   data[0] = REGISTERS::LEDn_ON_L_base + LEDn_DIFF * LEDn;
   // outputting data is always low bytes, then high bytes
-  data[1] = dataList[1+i*5];
-  data[2] = dataList[2+i*5];
-  data[3] = dataList[3+i*5];
-  data[4] = dataList[4+i*5];
+  data[1] = dataList[1 + i * 5];
+  data[2] = dataList[2 + i * 5];
+  data[3] = dataList[3 + i * 5];
+  data[4] = dataList[4 + i * 5];
   auto ok = write_i2c_t(this->i2c_port, this->addr, data);
 }
 
@@ -1639,7 +1639,7 @@ void PCA9685_Module::writeModule(std::vector<uint8_t> &data)
   // 1 + 2 ON
   // 3+4 OFF
   // update real module
-  
+
   for (auto i = 0; i < data.size() / 5; i++)
   {
     this->updateOne(data, i);
@@ -1654,7 +1654,7 @@ void PCA9685_Module::writeModule(std::vector<uint8_t> &data)
  * Byte4: wanted amount of servos
  * Byte5-N: ids of servos
  */
-Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t>& data)
+Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t> &data)
 {
 
   auto uart = data[0] == 0 ? uart0 : uart1;
@@ -1679,7 +1679,7 @@ Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t>& data)
   this->bus->enableAll();
 }
 
-bool Hiwonder_Servo::writeSingle(std::vector<uint8_t>& data, size_t i, bool single)
+bool Hiwonder_Servo::writeSingle(std::vector<uint8_t> &data, size_t i, bool single)
 {
   const int numBytes = 5;
   auto servoI = data[1 + numBytes * i];
@@ -1701,7 +1701,7 @@ bool Hiwonder_Servo::writeSingle(std::vector<uint8_t>& data, size_t i, bool sing
   return true;
 }
 
-void Hiwonder_Servo::writeModule(std::vector<uint8_t>& data)
+void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data)
 {
   auto count = data[0];
   // If just one, directly move, otherwise wait for the other commands to finish before moving
@@ -1747,7 +1747,7 @@ void Hiwonder_Servo::readModule()
   }
 }
 
-Shutdown_Relay::Shutdown_Relay(std::vector<uint8_t>& data)
+Shutdown_Relay::Shutdown_Relay(std::vector<uint8_t> &data)
 {
   this->pin = data[0];
   this->enable_on = data[1];
@@ -1780,7 +1780,7 @@ void enable_watchdog()
   watchdog_enable(WATCHDOG_TIME, 1); // Add watchdog again requiring trigger every 5s
   watchdog_update();
 }
-void Shutdown_Relay::writeModule(std::vector<uint8_t>& data)
+void Shutdown_Relay::writeModule(std::vector<uint8_t> &data)
 {
   if (data[0] == 1) // trigger to start the countdown
   {
@@ -1795,7 +1795,7 @@ void Shutdown_Relay::writeModule(std::vector<uint8_t>& data)
   }
 }
 
-void Module::publishData(std::vector<uint8_t>& data)
+void Module::publishData(std::vector<uint8_t> &data)
 {
   std::vector<uint8_t> out = {
       0,                  // write len
