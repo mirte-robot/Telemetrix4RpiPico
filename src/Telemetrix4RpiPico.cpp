@@ -1681,10 +1681,11 @@ Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t> &data)
 
 bool Hiwonder_Servo::writeSingle(std::vector<uint8_t> &data, size_t i, bool single)
 {
+  const offset = 2; // 1 for msg_type, 1 for count
   const int numBytes = 5;
-  auto servoI = data[1 + numBytes * i];
-  auto angle = ((int32_t)data[2 + numBytes * i] << 8) | data[3 + numBytes * i];
-  auto time = ((int16_t)data[4 + numBytes * i] << 8) | data[5 + numBytes * i];
+  auto servoI = data[offset + numBytes * i];
+  auto angle = ((int32_t)data[offset + 1 + numBytes * i] << 8) | data[offset + 2 + numBytes * i];
+  auto time = ((int16_t)data[offset + 3 + numBytes * i] << 8) | data[offset + 4 + numBytes * i];
 
   if (servoI >= this->servos.size())
   {
@@ -1703,23 +1704,49 @@ bool Hiwonder_Servo::writeSingle(std::vector<uint8_t> &data, size_t i, bool sing
 
 void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data)
 {
-  auto count = data[0];
-  // If just one, directly move, otherwise wait for the other commands to finish before moving
-  if (count == 1)
-  {
-    this->writeSingle(data, 0, true);
-  }
-  else
-  {
-    if (data.size() != count * 5 + 1)
+  auto msg_type = data[0];
+  if(msg_type == 1) { // normal set angle command with one or multiple servos
+    auto count = data[1];
+    // If just one, directly move, otherwise wait for the other commands to finish before moving
+    if (count == 1)
     {
+      this->writeSingle(data, 0, true);
+    }
+    else
+    {
+      if (data.size() != count * 5 + 2)
+      {
+        return;
+      }
+      for (auto i = 0; i < count; i++)
+      {
+        this->writeSingle(data, i, false);
+      }
+      this->bus->move_sync_start();
+    }
+  } else if(msg_type == 2) { // enable msg
+    auto count = data[1];
+    auto enabled = data[2];
+    if(count == 0) { // all servos
+      if(enabled) {
+        this->bus->enableAll();
+      } else {
+        this->bus->disableAll();
+      }
       return;
     }
-    for (auto i = 0; i < count; i++)
-    {
-      this->writeSingle(data, i, false);
+    for(auto i = 0; i < count; i++) {
+      auto servoI = data[3 + i];
+      if (servoI >= this->servos.size())
+      {
+        return;
+      }
+      if(enabled == 1) {
+      this->servos[servoI]->enable();
+      } else {
+        this->servos[servoI]->disable();
+      }
     }
-    this->bus->move_sync_start();
   }
 }
 
@@ -1933,10 +1960,15 @@ void serial_write(const int *buffer, int num_of_bytes_to_send)
 
 int main()
 {
+  // gpio_init(14);
+  // gpio_set_dir(14, GPIO_OUT);
+
+  // gpio_put(14, 0);
   stdio_init_all();
   stdio_set_translate_crlf(&stdio_usb, false);
   stdio_set_translate_crlf(&stdio_uart, false);
   stdio_flush();
+
   // uint offset = pio_add_program(pio, &Telemetrix4RpiPico_program);
   // ws2812_init(pio, sm, offset, 28, 800000,
   //             false);
@@ -1974,8 +2006,10 @@ int main()
   // blink the board LED twice to show that the board is
   // starting afresh
   led_debug(2, 250);
+    // watchdog_enable(WATCHDOG_TIME, 1); // Add watchdog requiring trigger every 5s
 
   // infinite loop
+  uint32_t start = time_us_32();
   uint32_t last_scan = 0;
   while (true)
   {
@@ -1994,6 +2028,11 @@ int main()
         scan_encoders();
         readSensors();
       }
+      // if (time_us_32() - start >= 10'000'000)
+      // {
+      //   gpio_put(14, 1);
+      //   led_debug(20, 250);
+      // }
     }
   }
 }

@@ -2,32 +2,22 @@
 
 ![](images/tmx.png)
 
-The Pico server code may be viewed [here.](https://github.com/MrYsLab/Telemetrix4RpiPico)
+The Pico server code may be viewed [here.](https://github.com/mirte-robot/Telemetrix4RpiPico)
 
-You may download the .uf2 file [here.](https://github.com/MrYsLab/Telemetrix4RpiPico/raw/master/cmake-build-release/Telemetrix4RpiPico.uf2)
+# Modules interface
 
-The following functionality is implemented in this release:
+## Hiwonder:
+### Set angle:
+Message subtype 1
+```py
+ [ 1, len(servos), servo_1_num, servo_1_angle_high_byte, servo_1_angle_low_byte, servo_1_time_high_byte, servo_1_time_low_byte, servo_X_angle_high_byte, servo_X_angle_low_byte, servo_X_time_high_byte, servo_X_time_low_byte, ...]
+ ```
 
-* Analog Input
-* Digital Input, Digital Input Pullup, Digital Input Pulldown
-* PWM output
-* Loopback (for client/server link debugging)
-* I2C Support
-* SPI Support
-* NeoPixel Support
-* Servo Support
-* HC-SR04 Type Sonar Distance Sensor Support
-* DHT 11 and 22 Humidity/Temperature Sensor Support
-* Autodetect PICO device over USB Serial.
-* Automatic board reset of the PICO using the watchdog timer when application exits.
-  * Board will blink twice upon reset.
-* Retrieval of the PICO's unique ID.
-
-The Telemetrix4RpiPico server, in conjunction with its [client peer](https://github.com/MrYsLab/telemetrix-rpi-pico),
-allows you to control a Raspberry Pi Pico remotely from your
-PC. A complete [User's Guide](https://mryslab.github.io/telemetrix-rpi-pico/) is available describing how to 
-install and use both the server and client.
-
-To install the server, follow these [installation instructions](https://mryslab.github.io/telemetrix-rpi-pico/install_pico_server/).
-
-Test push
+### Set enabled:
+ ```py
+[ 2, len(servos), enabled(1 or 0) servo_1_num, servo_X_num]
+```
+### Set all enabled:
+```py
+[ 2, 0, enabled]
+```
