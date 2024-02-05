@@ -1681,7 +1681,7 @@ Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t> &data)
 
 bool Hiwonder_Servo::writeSingle(std::vector<uint8_t> &data, size_t i, bool single)
 {
-  const offset = 2; // 1 for msg_type, 1 for count
+  const auto offset = 2; // 1 for msg_type, 1 for count
   const int numBytes = 5;
   auto servoI = data[offset + numBytes * i];
   auto angle = ((int32_t)data[offset + 1 + numBytes * i] << 8) | data[offset + 2 + numBytes * i];
@@ -1747,6 +1747,9 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data)
         this->servos[servoI]->disable();
       }
     }
+  } else if (msg_type == 3) { // update id
+    auto new_id = data[1];
+    this->bus->id_write(new_id);
   }
 }
 
