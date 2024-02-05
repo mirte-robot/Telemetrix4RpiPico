@@ -1969,7 +1969,10 @@ int main()
   // gpio_put(14, 0);
   stdio_init_all();
   stdio_set_translate_crlf(&stdio_usb, false);
+  #ifdef WITH_UART_STDIO
+  // Mirte-master pcb has uart rx connected to tx, resulting in loopback errors
   stdio_set_translate_crlf(&stdio_uart, false);
+  #endif
   stdio_flush();
 
   // uint offset = pio_add_program(pio, &Telemetrix4RpiPico_program);
