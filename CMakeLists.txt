@@ -18,15 +18,11 @@ add_executable(Telemetrix4RpiPico
         src/HiwonderServo.cpp
 )
 
-option(WITH_UART_STDIO "Uart stdio enable" ON)
-if(WITH_UART_STDIO)
-        add_definitions(-DWITH_UART_STDIO)
-endif()
 target_include_directories(Telemetrix4RpiPico PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/)
 # target_compile_options(Telemetrix4RpiPico PRIVATE -Wall -Wextra -Wpedantic -Werror)
 pico_generate_pio_header(Telemetrix4RpiPico ${CMAKE_CURRENT_LIST_DIR}/src/Telemetrix4RpiPico.pio)
 pico_enable_stdio_usb(Telemetrix4RpiPico 1)
-pico_enable_stdio_uart(Telemetrix4RpiPico ${WITH_UART_STDIO})
+pico_enable_stdio_uart(Telemetrix4RpiPico 0)
 pico_add_extra_outputs(Telemetrix4RpiPico)
 target_link_libraries(Telemetrix4RpiPico pico_stdlib hardware_pwm
         pico_unique_id hardware_watchdog hardware_adc hardware_i2c

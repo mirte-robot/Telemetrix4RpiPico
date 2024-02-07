@@ -1066,7 +1066,7 @@ void get_next_command()
   // Get the number of bytes of the command packet.
   // The first byte is the command ID and the following bytes
   // are the associated data bytes
-  packet_size = getchar_timeout_us(100);
+  packet_size = get_byte();
   if (packet_size == PICO_ERROR_TIMEOUT)
   {
     // no data, let the main loop continue to run to handle inputs
@@ -1079,7 +1079,7 @@ void get_next_command()
     {
       for (int retries = 10; retries > 0; retries--)
       {
-        packet_data = getchar_timeout_us(100);
+        packet_data = get_byte();
 
         if (packet_data != PICO_ERROR_TIMEOUT)
         {
@@ -1535,11 +1535,18 @@ void serial_write(std::vector<uint8_t> data)
 {
   for (auto i : data)
   {
-    putchar(i);
+    put_byte(i);
   }
   stdio_flush();
 }
 
+void put_byte(uint8_t byte)
+{
+  if(uart_enabled) {
+    uart_putc(UART_ID, byte);
+  }
+  putchar(byte);
+}
 /***********************************************/
 /***************MODULES*************************/
 void module_new()
@@ -1952,9 +1959,47 @@ void serial_write(const int *buffer, int num_of_bytes_to_send)
 {
   for (int i = 0; i < num_of_bytes_to_send; i++)
   {
-    putchar((buffer[i]) & 0x00ff);
+    put_byte((buffer[i]) & 0x00ff);
   }
   stdio_flush();
+}
+
+bool uart_enabled = true;
+
+void check_uart_loopback() {
+      uart_init(UART_ID, BAUD_RATE);
+    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+    uart_putc_raw(UART_ID, 'A');
+
+  // If we read back the same message as sent, then there is a loopback
+  // and disable the uart for normal Telemetrix communication.
+  while (uart_is_readable(UART_ID)) {
+        uint8_t ch = uart_getc(UART_ID);
+    // empty the uart.
+  }
+  uint8_t test_message= 'A';
+  uint8_t read_byte;
+ 
+    uart_putc_raw(UART_ID, test_message);
+    sleep_ms(10);
+    if(uart_is_readable(UART_ID)) {
+      read_byte = uart_getc(UART_ID);
+      if(read_byte == test_message) {
+        uart_enabled = false;
+        return;
+      }
+    }
+}
+
+int get_byte() {
+  // If there is no uart loopback, then also check the uart for incoming data.
+  if(uart_enabled) {
+    if(uart_is_readable(UART_ID)) {
+      return uart_getc(UART_ID);
+    }
+  }
+  return getchar_timeout_us(100);
 }
 
 /***************************************************************
@@ -1974,12 +2019,7 @@ int main()
   stdio_set_translate_crlf(&stdio_uart, false);
   #endif
   stdio_flush();
-
-  // uint offset = pio_add_program(pio, &Telemetrix4RpiPico_program);
-  // ws2812_init(pio, sm, offset, 28, 800000,
-  //             false);
-
-  // stdio_set_translate_crlf(&stdio_usb, false);
+  check_uart_loopback(); // Mirte-master has pin 0 and 1 tied together, then don't want to use it
   adc_init();
   // create an array of pin_descriptors for 100 pins
   // establish the digital pin array
