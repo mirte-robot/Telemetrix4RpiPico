@@ -5,8 +5,12 @@
 #ifndef TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 #define TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 
+#include "HX711.hpp"
+#include "HiwonderServo.hpp"
+#include "INA226v2.hpp"
+#include "MPU9250.hpp"
 #include "Telemetrix4RpiPico.pio.h"
-#include "i2c_helpers.hpp"
+#include "VL53L0.hpp"
 #include "hardware/adc.h"
 #include "hardware/clocks.h"
 #include "hardware/i2c.h"
@@ -14,6 +18,7 @@
 #include "hardware/pwm.h"
 #include "hardware/spi.h"
 #include "hardware/watchdog.h"
+#include "i2c_helpers.hpp"
 #include "math.h"
 #include "pico/stdlib.h"
 #include "pico/unique_id.h"
@@ -22,11 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
-#include "VL53L0.hpp"
-#include "MPU9250.hpp"
-#include "HX711.hpp"
-#include "INA226v2.hpp"
-#include "HiwonderServo.hpp"
 /************************** FORWARD REFERENCES ***********************
 We define all functions here as extern to provide allow
 forward referencing.
@@ -108,7 +108,6 @@ extern void set_scan_delay();
 
 void encoder_new();
 
-
 // functions to allow uart loopback on the mirte-master pcb for the servos
 int get_byte();
 
@@ -132,7 +131,7 @@ extern bool uart_enabled;
 #define SET_PIN_MODE 1
 #define DIGITAL_WRITE 2
 #define PWM_WRITE 3
-#define MODIFY_REPORTING \
+#define MODIFY_REPORTING                                                       \
   4 // mode(all, analog, or digital), pin, enable or disable
 #define GET_FIRMWARE_VERSION 5
 #define GET_PICO_UNIQUE_ID 6
@@ -346,11 +345,7 @@ const uint DHT_MAX_TIMINGS = 85;
 // Max encoder devices
 #define MAX_ENCODERS 4
 
-typedef enum
-{
-  SINGLE = 1,
-  QUADRATURE = 2
-} ENCODER_TYPES;
+typedef enum { SINGLE = 1, QUADRATURE = 2 } ENCODER_TYPES;
 
 // encoder reports are identified by pin A
 #define ENCODER_REPORT_PIN_A 2
@@ -444,8 +439,7 @@ const int MODULE_REPORT = 34;
 #define I2C_NO_REGISTER_SPECIFIED 254
 
 // a descriptor for digital pins
-typedef struct
-{
+typedef struct {
   uint pin_number;
   uint pin_mode;
   uint reporting_enabled; // If true, then send reports if an input pin
@@ -453,16 +447,14 @@ typedef struct
 } pin_descriptor;
 
 // a descriptor for analog pins
-typedef struct analog_pin_descriptor
-{
+typedef struct analog_pin_descriptor {
   uint reporting_enabled; // If true, then send reports if an input pin
   int last_value;         // Last value read for input mode
   int differential;       // difference between current and last value needed
 } analog_pin_descriptor;
 
 // This structure describes an HC-SR04 type device
-typedef struct hc_sr04_descriptor
-{
+typedef struct hc_sr04_descriptor {
   uint trig_pin; // trigger pin
   uint echo_pin; // echo pin
   uint32_t start_time;
@@ -471,8 +463,7 @@ typedef struct hc_sr04_descriptor
 
 // this structure holds an index into the sonars array
 // and the sonars array
-typedef struct sonar_data
-{
+typedef struct sonar_data {
   int next_sonar_index;
   repeating_timer_t trigger_timer;
   uint32_t trigger_mask;
@@ -480,8 +471,7 @@ typedef struct sonar_data
 } sonar_data;
 
 // this structure describes a DHT type device
-typedef struct dht_descriptor
-{
+typedef struct dht_descriptor {
   uint data_pin; // data pin
   absolute_time_t previous_time;
   /* for possible future use
@@ -492,15 +482,13 @@ typedef struct dht_descriptor
 
 // this structure holds an index into the dht array
 // and the dhts array
-typedef struct dht_data
-{
+typedef struct dht_data {
   int next_dht_index;
   dht_descriptor dhts[MAX_DHTS];
 } dht_data;
 
 // encoder type
-typedef struct
-{
+typedef struct {
   ENCODER_TYPES type;
   int A;
   int B;
@@ -508,15 +496,13 @@ typedef struct
   int last_state;
 } encoder_t;
 
-typedef struct
-{
+typedef struct {
   int next_encoder_index;
   repeating_timer_t trigger_timer;
   encoder_t encoders[MAX_ENCODERS];
 } encoder_data;
 encoder_data encoders;
-typedef struct
-{
+typedef struct {
   // a pointer to the command processing function
   void (*command_func)(void);
 } command_descriptor;
@@ -527,9 +513,8 @@ void ping();
 /****SENSORS*/
 /*****************************************************************************/
 
-enum SENSOR_TYPES : uint8_t
-{ // Max 255 sensors, but will always fit in a
-  // single byte!
+enum SENSOR_TYPES : uint8_t { // Max 255 sensors, but will always fit in a
+                              // single byte!
   GPS = 0,
   LOAD_CELL = 1,
   MPU_9250 = 2,
@@ -539,8 +524,7 @@ enum SENSOR_TYPES : uint8_t
   INA226a = 6,
   MAX_SENSORS
 };
-class Sensor
-{
+class Sensor {
 public:
   virtual void readSensor() = 0;
   bool stop = false;
@@ -549,8 +533,7 @@ public:
   SENSOR_TYPES type = SENSOR_TYPES::MAX_SENSORS;
 };
 const int SENSORS_MAX_SETTINGS_A = 6;
-class GPS_Sensor : public Sensor
-{
+class GPS_Sensor : public Sensor {
 public:
   GPS_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
@@ -558,8 +541,7 @@ public:
 private:
   uart_inst_t *uart_id = uart0;
 };
-class ADXL345_Sensor : public Sensor
-{
+class ADXL345_Sensor : public Sensor {
 public:
   ADXL345_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
@@ -570,8 +552,7 @@ private:
   int i2c_addr = 83;
 };
 
-class VEML6040_Sensor : public Sensor
-{
+class VEML6040_Sensor : public Sensor {
 public:
   VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
@@ -582,8 +563,7 @@ private:
   int i2c_addr = 0x10;
 };
 
-class VL53L0X_Sensor : public Sensor
-{
+class VL53L0X_Sensor : public Sensor {
 public:
   VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
@@ -594,8 +574,7 @@ private:
   int i2c_addr = 0x52;
 };
 
-class MPU9250_Sensor : public Sensor
-{
+class MPU9250_Sensor : public Sensor {
 public:
   MPU9250_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
@@ -605,8 +584,7 @@ private:
   int i2c_port = 0;
 };
 
-class HX711_Sensor : public Sensor
-{
+class HX711_Sensor : public Sensor {
 public:
   HX711_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
@@ -615,8 +593,7 @@ private:
   HX711 sensor;
 };
 
-class INA226_Sensor : public Sensor
-{
+class INA226_Sensor : public Sensor {
 public:
   INA226_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
@@ -632,17 +609,15 @@ void serial_write(std::vector<uint8_t> data);
 std::vector<Sensor *> sensors;
 void reportBytes(std::vector<uint8_t>);
 
-enum MODULE_TYPES : uint8_t
-{ // Max 255 modules, but will always fit in a
-  // single byte!
+enum MODULE_TYPES : uint8_t { // Max 255 modules, but will always fit in a
+                              // single byte!
   PCA9685 = 0, // 16x 12bit PWM
   HIWONDER_SERVO = 1,
   SHUTDOWN_RELAY = 2,
   MAX_MODULES
 };
 
-class Module
-{
+class Module {
 public:
   virtual void readModule() = 0;
   virtual void writeModule(std::vector<uint8_t> &data) = 0;
@@ -652,15 +627,13 @@ public:
   MODULE_TYPES type = MODULE_TYPES::MAX_MODULES;
 };
 
-class PCA9685_Module : public Module
-{
+class PCA9685_Module : public Module {
 public:
   PCA9685_Module(std::vector<uint8_t> &data);
   void readModule();
   void writeModule(std::vector<uint8_t> &data);
   void updateOne(std::vector<uint8_t> &data, size_t i);
-  enum REGISTERS : uint8_t
-  {
+  enum REGISTERS : uint8_t {
     LEDn_DIFF = 0x04,
     LEDn_ON_L_base = 0x06,
 
@@ -675,8 +648,7 @@ private:
   uint8_t addr = 0b0100'0000;
 };
 
-class Hiwonder_Servo : public Module
-{
+class Hiwonder_Servo : public Module {
 public:
   Hiwonder_Servo(std::vector<uint8_t> &data);
   void readModule();
@@ -688,8 +660,7 @@ private:
   std::vector<HiwonderServo *> servos;
 };
 
-class Shutdown_Relay : public Module
-{
+class Shutdown_Relay : public Module {
 public:
   Shutdown_Relay(std::vector<uint8_t> &data);
   void readModule();
