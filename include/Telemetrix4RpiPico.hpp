@@ -611,7 +611,7 @@ void reportBytes(std::vector<uint8_t>);
 
 enum MODULE_TYPES : uint8_t { // Max 255 modules, but will always fit in a
                               // single byte!
-  PCA9685 = 0, // 16x 12bit PWM
+  PCA9685 = 0,                // 16x 12bit PWM
   HIWONDER_SERVO = 1,
   SHUTDOWN_RELAY = 2,
   MAX_MODULES

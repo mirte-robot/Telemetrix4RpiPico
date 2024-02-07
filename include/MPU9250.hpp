@@ -903,7 +903,7 @@ private:
 
     // Get soft iron correction estimate
     //*** multiplication by mag_bias_factory added in accordance with the
-    //following comment
+    // following comment
     //*** https://github.com/kriswiner/MPU9250/issues/456#issue-836657973
     scale[0] = (float)(mag_max[0] - mag_min[0]) * mag_bias_factory[0] /
                2; // get average x axis max chord length in counts
