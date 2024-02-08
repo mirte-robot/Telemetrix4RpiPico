@@ -1721,13 +1721,15 @@ void serial_write(const int *buffer, int num_of_bytes_to_send) {
   stdio_flush();
 }
 
-bool uart_enabled = true;
+volatile bool uart_enabled = true;
 
 void check_uart_loopback() {
+  sleep_ms(10);
+  // led_debug(5, 100);
   uart_init(UART_ID, BAUD_RATE);
   gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
   gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-  uart_putc_raw(UART_ID, 'A');
+  // uart_putc_raw(UART_ID, 'A');
 
   // If we read back the same message as sent, then there is a loopback
   // and disable the uart for normal Telemetrix communication.
@@ -1735,12 +1737,15 @@ void check_uart_loopback() {
     uint8_t ch = uart_getc(UART_ID);
     // empty the uart.
   }
-  uint8_t test_message = 'A';
-  uint8_t read_byte;
+  uint8_t test_message = 0; // send a null character, this shouldn't interfere
+                            // with the tmx-pico-aio implementation.
+  uint8_t read_byte = 123;
 
   uart_putc_raw(UART_ID, test_message);
-  sleep_ms(10);
+  sleep_ms(100);
+
   if (uart_is_readable(UART_ID)) {
+
     read_byte = uart_getc(UART_ID);
     if (read_byte == test_message) {
       uart_enabled = false;
@@ -1806,6 +1811,8 @@ int main() {
   // blink the board LED twice to show that the board is
   // starting afresh
   led_debug(2, 250);
+  gpio_put(LED_PIN, uart_enabled);
+
   // watchdog_enable(WATCHDOG_TIME, 1); // Add watchdog requiring trigger every
   // 5s
 

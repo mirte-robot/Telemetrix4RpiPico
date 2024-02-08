@@ -114,7 +114,7 @@ int get_byte();
 void put_byte(uint8_t byte);
 
 void check_uart_loopback();
-extern bool uart_enabled;
+extern volatile bool uart_enabled;
 #define UART_ID uart0
 #define BAUD_RATE 115200
 #define UART_TX_PIN 0
