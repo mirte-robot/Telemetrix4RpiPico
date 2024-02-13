@@ -75,6 +75,7 @@ uint actual_number_of_pixels;
 // scan delay
 uint8_t scan_delay = 100;
 
+// TODO: remove this slow mess, use latest example with dma
 static inline void put_pixel(uint32_t pixel_grb) {
   pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
 }
