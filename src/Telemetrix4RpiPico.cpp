@@ -1085,7 +1085,7 @@ void ping() {
                               special_num, random};
   out[0] = out.size() - 1; // dont count the packet length
   serial_write(out);
-  if(watchdog_enable_shutdown) {
+  if (watchdog_enable_shutdown) {
     watchdog_update();
   }
 }
@@ -1589,18 +1589,16 @@ void enable_watchdog() {
 
 void Shutdown_Relay::readModule() {
   if (this->enabled) {
-    if (time_us_32() - this->start_time > (this->wait_time*1'000'000))
-    {
+    if (time_us_32() - this->start_time > (this->wait_time * 1'000'000)) {
       gpio_put(this->pin, this->enable_on);
       // relay will be turned off and power will be cut
-      
-      // enable watchdog and wait for reset when the relay is not connected or not working. Don't want the pico to be stuck
+
+      // enable watchdog and wait for reset when the relay is not connected or
+      // not working. Don't want the pico to be stuck
       enable_watchdog();
-      while (true)
-      {
+      while (true) {
         led_debug(100, 100);
       }
-      
     }
   }
 }
