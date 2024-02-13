@@ -507,6 +507,7 @@ typedef struct {
   void (*command_func)(void);
 } command_descriptor;
 
+bool watchdog_enable_shutdown = true; // if false, then don't do anything with the watchdog and just wait for shutdown
 void ping();
 
 /*****************************************************************************/
@@ -670,6 +671,7 @@ private:
   int pin = 0;
   bool enabled = false;
   bool enable_on = true;
+  int wait_time = 10;
   decltype(time_us_32()) start_time = 0;
 };
 

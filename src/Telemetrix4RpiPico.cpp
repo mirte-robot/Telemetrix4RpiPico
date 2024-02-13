@@ -1085,8 +1085,9 @@ void ping() {
                               special_num, random};
   out[0] = out.size() - 1; // dont count the packet length
   serial_write(out);
-
-  watchdog_update();
+  if(watchdog_enable_shutdown) {
+    watchdog_update();
+  }
 }
 
 // SENSORSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
@@ -1237,6 +1238,7 @@ void VEML6040_Sensor::readSensor() {
 VL53L0X_Sensor::VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
   this->sensor.setBus(settings[0]);
   bool ok = this->sensor.init();
+  // this->sensor.setTimeout(1);
   if (!ok) {
     this->stop = true;
     return;
@@ -1301,7 +1303,7 @@ INA226_Sensor::INA226_Sensor(uint8_t sensor_data[SENSORS_MAX_SETTINGS_A]) {
     this->stop = true;
     return;
   }
-  this->sensor->setResistorRange(0.002, 20);
+  this->sensor->setResistorRange(0.010, 8.3);
   // this->sensor.av
   this->sensor->setAverage(INA226_AVERAGES::AVERAGE_256);
   this->sensor->setMeasureMode(INA226_MEASURE_MODE::CONTINUOUS);
@@ -1568,23 +1570,13 @@ void Hiwonder_Servo::readModule() {
 Shutdown_Relay::Shutdown_Relay(std::vector<uint8_t> &data) {
   this->pin = data[0];
   this->enable_on = data[1];
+  this->wait_time = data[2]; // seconds
   gpio_init(this->pin);
   gpio_set_dir(this->pin, GPIO_OUT);
-  gpio_put(this->pin, this->enable_on);
+  gpio_put(this->pin, !this->enable_on);
   this->start_time = time_us_32();
   this->enabled = false;
 }
-
-void Shutdown_Relay::readModule() {
-  if (this->enabled) {
-    if (time_us_32() - this->start_time > 30'000'000) // 30s
-    {
-      gpio_put(this->pin, !this->enable_on);
-      // relay will be turned off and power will be cut
-    }
-  }
-}
-
 void disable_watchdog() {
   hw_clear_bits(&watchdog_hw->ctrl, WATCHDOG_CTRL_ENABLE_BITS);
 }
@@ -1594,16 +1586,38 @@ void enable_watchdog() {
                   1); // Add watchdog again requiring trigger every 5s
   watchdog_update();
 }
+
+void Shutdown_Relay::readModule() {
+  if (this->enabled) {
+    if (time_us_32() - this->start_time > (this->wait_time*1'000'000))
+    {
+      gpio_put(this->pin, this->enable_on);
+      // relay will be turned off and power will be cut
+      
+      // enable watchdog and wait for reset when the relay is not connected or not working. Don't want the pico to be stuck
+      enable_watchdog();
+      while (true)
+      {
+        led_debug(100, 100);
+      }
+      
+    }
+  }
+}
+
 void Shutdown_Relay::writeModule(std::vector<uint8_t> &data) {
   if (data[0] == 1) // trigger to start the countdown
   {
     this->start_time = time_us_32();
     this->enabled = true;
     disable_watchdog();
+    watchdog_enable_shutdown = false; // dont let ping pet the watchdog
   } else {
     this->enabled = false;
     enable_watchdog();
+    watchdog_enable_shutdown = true;
   }
+  gpio_put(LED_PIN, this->enabled);
 }
 
 void Module::publishData(std::vector<uint8_t> &data) {
