@@ -1550,28 +1550,29 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
     HiwonderServo tempServo(this->bus, check_id);
     auto ok = tempServo.id_verify();
     std::vector<uint8_t> data = {
-        4,                  // id check type
-        check_id,           // id
-        ok,                 // ok
+        4,        // id check type
+        check_id, // id
+        ok,       // ok
     };
     this->publishData(data);
-  } else if(msg_type == 5) {
+  } else if (msg_type == 5) {
     // range write
     auto id = data[1];
     auto min = ((int32_t)data[2] << 8) | data[3];
     auto max = ((int32_t)data[4] << 8) | data[5];
-    this->servos[id]->setLimitsTicks(min/24, max/24); // 24 degrees per tick
-  } else if(msg_type == 6) {
+    this->servos[id]->setLimitsTicks(min / 24, max / 24); // 24 degrees per tick
+  } else if (msg_type == 6) {
     // read range of servo stored in servo
     auto id = data[1];
     this->servos[id]->readLimits();
     auto min = this->servos[id]->minCentDegrees;
     auto max = this->servos[id]->maxCentDegrees;
-    std::vector<uint8_t> data = {
-        6,                  // id check type
-        id,           // id
-        (uint8_t)(min >> 8), (uint8_t)(min & 0xff), (uint8_t)(max >> 8), (uint8_t)(max & 0xff)
-    };
+    std::vector<uint8_t> data = {6,  // id check type
+                                 id, // id
+                                 (uint8_t)(min >> 8),
+                                 (uint8_t)(min & 0xff),
+                                 (uint8_t)(max >> 8),
+                                 (uint8_t)(max & 0xff)};
     this->publishData(data);
   }
 }
@@ -1579,7 +1580,7 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
 void Hiwonder_Servo::readModule() {
   // read angle, temp?
   std::vector<uint8_t> data;
-  data.reserve(this->servos.size() * 5 +1);
+  data.reserve(this->servos.size() * 5 + 1);
   data.push_back(0); // message type servo angles
   // only update position when changed
   for (auto i = 0; auto servo : this->servos) {
