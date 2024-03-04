@@ -30,7 +30,7 @@
 
 #include "Telemetrix4RpiPico.hpp"
 // #include "pico/stdio_uart.h"
-
+#include "hardware/regs/usb.h"
 /*******************************************************************
  *              GLOBAL VARIABLES, AND STORAGE
  ******************************************************************/
@@ -1797,7 +1797,44 @@ void check_uart_loopback() {
     }
   }
 }
+bool check_usb_connection() {
+  // Read in VBUS pin
+  // NOTE: this does not work with a pico W, as the VBUS pin is connected to the Wifi chip
+  auto const USB_VBUS_PIN = 24;
+  return gpio_get(USB_VBUS_PIN);
+}
+#define MIRTE_MASTER 1
+#if MIRTE_MASTER
+void check_mirte_master() {
+  if(uart_enabled){
+    // Not a mirte master pcb (with tied uart pins)
+    return;
+  }
+  gpio_put(LED_PIN, check_usb_connection());
+  // Assume the pico is put on a mirte-master pcb
+  // when the pc is shut down, but did not inform the pico for the relay, then the power will stay on
+  // check usb connection, if not connected, then turn off the relay
+  static auto start_time = 0;
+  if (!check_usb_connection()) {
+    if (start_time == 0) {
+      start_time = time_us_32();
+    }
+    if (time_us_32() - start_time > 100'000'000) { // Wait 100s for a usb connection
+      const auto relay_pin = 27;
+      gpio_init(relay_pin);
+      gpio_set_dir(relay_pin, GPIO_OUT);
+      gpio_put(relay_pin, 1);
+      enable_watchdog();
+      while(1) {
+        led_debug(10, 200);
+      }
+    }
+} else {
+  start_time = 0;
 
+}
+}
+#endif
 int get_byte() {
   // If there is no uart loopback, then also check the uart for incoming data.
   if (uart_enabled) {
@@ -1825,7 +1862,7 @@ int main() {
 #endif
   stdio_flush();
   check_uart_loopback(); // Mirte-master has pin 0 and 1 tied together, then
-                         // don't want to use it
+                         // don't want to use it  
   adc_init();
   // create an array of pin_descriptors for 100 pins
   // establish the digital pin array
@@ -1876,6 +1913,9 @@ int main() {
         scan_dhts();
         scan_encoders();
         readSensors();
+        #if MIRTE_MASTER
+        check_mirte_master();
+        #endif
       }
       // if (time_us_32() - start >= 10'000'000)
       // {
