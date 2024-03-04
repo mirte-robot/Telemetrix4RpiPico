@@ -4,7 +4,6 @@
 
 #ifndef TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 #define TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
-
 #include "HX711.hpp"
 #include "HiwonderServo.hpp"
 #include "INA226v2.hpp"
@@ -20,6 +19,7 @@
 #include "hardware/watchdog.h"
 #include "i2c_helpers.hpp"
 #include "math.h"
+#include "neopixel.hpp"
 #include "pico/stdlib.h"
 #include "pico/unique_id.h"
 #include <array>
@@ -660,6 +660,7 @@ public:
 private:
   HiwonderBus *bus;
   std::vector<HiwonderServo *> servos;
+  int enabled_servos = 0;
 };
 
 class Shutdown_Relay : public Module {

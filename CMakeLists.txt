@@ -12,8 +12,13 @@ project(Telemetrix4RpiPico)
 pico_sdk_init()
 add_executable(
   Telemetrix4RpiPico
-  src/Telemetrix4RpiPico.cpp src/VL53L0.cpp src/i2c_helpers.cpp src/HX711.cpp
-  src/INA226v2.cpp src/HiwonderServo.cpp)
+  src/Telemetrix4RpiPico.cpp
+  src/VL53L0.cpp
+  src/i2c_helpers.cpp
+  src/HX711.cpp
+  src/neopixel.cpp
+  src/INA226v2.cpp
+  src/HiwonderServo.cpp)
 
 target_include_directories(Telemetrix4RpiPico
                            PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/)
@@ -34,6 +39,7 @@ target_link_libraries(
   hardware_i2c
   hardware_pio
   hardware_clocks
+  hardware_dma
   hardware_spi)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

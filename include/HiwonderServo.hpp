@@ -232,6 +232,8 @@ public:
   int32_t staticOffset = 0;
   int32_t maxCentDegrees = 240000;
   int32_t minCentDegrees = 0;
+  bool disabled = false;
+  int fault_count = 0;
 
   // Used for telemetrix to only publish on change:
   int32_t lastPublishedPosition = 0;
@@ -549,9 +551,9 @@ public:
     initialize();
     uint8_t params[3];
     if (!_bus->read(HiwonderCommands::POS_READ, params, 2, _id)) {
-      if (_bus->_debug)
-        // Serial.print("Position Read failed " + String(_id) + "\n\n");
-        commandOK = false;
+      // if (_bus->_debug)
+      // Serial.print("Position Read failed " + String(_id) + "\n\n");
+      commandOK = false;
       return pos_read_cached() + staticOffset;
     }
     commandOK = true;
