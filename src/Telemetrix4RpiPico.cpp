@@ -1571,7 +1571,7 @@ void Hiwonder_Servo::readModule() {
       servo->fault_count = 0;
     } else {
       servo->fault_count++;
-      if (servo->fault_count > 10) {
+      if (servo->fault_count > 2) {
         servo->disabled = true;
         this->enabled_servos--;
       }
@@ -1898,7 +1898,7 @@ int main() {
     get_next_command();
 
     if (!stop_reports) {
-      while (time_us_32() - last_scan >= (scan_delay)) {
+      if (time_us_32() - last_scan >= (scan_delay)) {
         last_scan += scan_delay;
         // send_debug_info(10, (time_us_32() - last_scan) / 1000);
         scan_digital_inputs();
