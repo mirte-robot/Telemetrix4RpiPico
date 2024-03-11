@@ -1444,6 +1444,7 @@ Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t> &data) {
     auto id = data[4 + i];
     auto servo = new HiwonderServo(this->bus, id);
     servo->initialize();
+    auto offset = servo->read_angle_offset();
     this->servos.push_back(servo);
     this->enabled_servos++;
   }
@@ -1549,6 +1550,19 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
                                  (uint8_t)(min & 0xff),
                                  (uint8_t)(max >> 8),
                                  (uint8_t)(max & 0xff)};
+    this->publishData(data);
+  } else if (msg_type == 7) { // Set offset
+    auto id = data[1];
+    auto offset = ((int32_t)data[2] << 8) | data[3];
+    this->servos[id]->angle_offset_adjust(offset / 24);
+    this->servos[id]->angle_offset_save();
+  } else if (msg_type == 8) {
+    auto id = data[1];
+    auto offset = this->servos[id]->read_angle_offset() * 24;
+    std::vector<uint8_t> data = {8,  // offset type
+                                 id, // id
+                                 (uint8_t)(offset >> 8),
+                                 (uint8_t)(offset & 0xff)};
     this->publishData(data);
   }
 }
