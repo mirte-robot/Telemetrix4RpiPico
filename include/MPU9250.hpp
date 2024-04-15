@@ -124,9 +124,8 @@ public:
   static constexpr uint16_t CALIB_GYRO_SENSITIVITY{131};    // LSB/degrees/sec
   static constexpr uint16_t CALIB_ACCEL_SENSITIVITY{16384}; // LSB/g
 
-  bool setup(const uint8_t addr,
-             const MPU9250Setting &mpu_setting = MPU9250Setting(),
-             int bus = 0) {
+  int setup(const uint8_t addr,
+            const MPU9250Setting &mpu_setting = MPU9250Setting(), int bus = 0) {
     // addr should be valid for MPU
     if ((addr < MPU9250_DEFAULT_ADDRESS) ||
         (addr > MPU9250_DEFAULT_ADDRESS + 7)) {
@@ -142,22 +141,22 @@ public:
 
     if (isConnectedMPU9250()) {
       initMPU9250();
-      if (isConnectedAK8963())
+      if (isConnectedAK8963()) {
         initAK8963();
-      else {
-        if (b_verbose)
-          // Serialprintln("Could not connect to AK8963");
-          has_connected = false;
+      } else {
+        // if (b_verbose)
+        // Serialprintln("Could not connect to AK8963");
+        has_connected = false;
         return false;
       }
     } else {
-      if (b_verbose)
-        // Serialprintln("Could not connect to MPU9250");
-        has_connected = false;
-      return false;
+      // if (b_verbose)
+      // Serialprintln("Could not connect to MPU9250");
+      has_connected = false;
+      return 1;
     }
     has_connected = true;
-    return true;
+    return 2;
   }
 
   void sleep(bool b) {
