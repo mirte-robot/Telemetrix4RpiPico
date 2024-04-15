@@ -1027,9 +1027,9 @@ void scan_sonars() {
     serial_write(sonar_report_message, 5);
   }
 }
-
+bool watchdog_enabled = false;
+uint32_t last_ping = 0;
 void ping() {
-  static bool watchdog_enabled = false;
   static uint8_t random = -1;
 
   auto special_num = command_buffer[1];
@@ -1048,7 +1048,22 @@ void ping() {
   serial_write(out);
   if (watchdog_enable_shutdown) {
     watchdog_update();
+    last_ping = time_us_32();
   }
+}
+
+const auto wd_timeout_time = WATCHDOG_TIME*4/5;
+
+void check_wd_timeout() {
+  // if watchdog is about to run out of time, reset modules
+ if(time_us_32() - last_ping >= (wd_timeout_time)) {
+    for(auto & sensor: sensors) {
+      sensor->resetSensor();
+    }
+    for(auto & module : modules) {
+      module->resetModule();
+    }
+ }
 }
 
 // SENSORSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
@@ -1215,11 +1230,15 @@ void VL53L0X_Sensor::readSensor() {
 
 MPU9250_Sensor::MPU9250_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
   this->sensor.bus = settings[0];
-  auto i = this->sensor.setup(0x69, MPU9250Setting(), this->sensor.bus);
-  send_debug_info(12, i);
-  send_debug_info(13, this->sensor.bus);
+  auto i = this->sensor.setup(0x68);
+  if (!i) {
+    this->enabled = false;
+  }
 }
 void MPU9250_Sensor::readSensor() {
+  if(!this->enabled) {
+    return;
+  }
   if (this->sensor.update()) {
     std::vector<float> float_data;
     for (int i = 0; i < 3; i++) {
@@ -1392,6 +1411,13 @@ PCA9685_Module::PCA9685_Module(std::vector<uint8_t> &data) {
 
 void PCA9685_Module::readModule() {
   // no data to read
+}
+
+void PCA9685_Module::resetModule() {
+  for(auto i = 0; i < 16; i++) {
+    std::vector<uint8_t> data = {(uint8_t)i, 0,0,0,0};
+    this->updateOne(data, 0);
+  }
 }
 
 void PCA9685_Module::updateOne(std::vector<uint8_t> &dataList, size_t i) {
@@ -1818,13 +1844,14 @@ void check_mirte_master() {
     // Not a mirte master pcb (with tied uart pins)
     return;
   }
-  gpio_put(LED_PIN, check_usb_connection());
+  auto usb = check_usb_connection();
+  gpio_put(LED_PIN, usb);
   // Assume the pico is put on a mirte-master pcb
   // when the pc is shut down, but did not inform the pico for the relay, then
   // the power will stay on check usb connection, if not connected, then turn
   // off the relay
   static auto start_time = 0;
-  if (!check_usb_connection()) {
+  if (!usb) {
     if (start_time == 0) {
       start_time = time_us_32();
     }
@@ -1926,6 +1953,9 @@ int main() {
 #if MIRTE_MASTER
         check_mirte_master();
 #endif
+        if(watchdog_enable) {
+          check_wd_timeout();
+        }
       }
     }
   }

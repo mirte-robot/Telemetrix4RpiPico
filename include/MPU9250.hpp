@@ -133,7 +133,7 @@ public:
       // // Serialprint(addr, HEX);
       // // Serialprintln(" is not valid for MPU. Please check your I2C
       // address.");
-      return false;
+      return 0;
     }
     mpu_i2c_addr = addr;
     setting = mpu_setting;
@@ -143,20 +143,21 @@ public:
       initMPU9250();
       if (isConnectedAK8963()) {
         initAK8963();
+        has_connected = true;
+    return 2;
       } else {
         // if (b_verbose)
         // Serialprintln("Could not connect to AK8963");
-        has_connected = false;
-        return false;
+        has_connected = true; // just fake it that it is connected, we can still use the mpu9250 data
+        return 1;
       }
     } else {
       // if (b_verbose)
       // Serialprintln("Could not connect to MPU9250");
       has_connected = false;
-      return 1;
+      return 0;
     }
-    has_connected = true;
-    return 2;
+    
   }
 
   void sleep(bool b) {

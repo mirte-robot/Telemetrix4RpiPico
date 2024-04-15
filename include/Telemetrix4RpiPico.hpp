@@ -529,6 +529,7 @@ enum SENSOR_TYPES : uint8_t { // Max 255 sensors, but will always fit in a
 class Sensor {
 public:
   virtual void readSensor() = 0;
+  virtual void resetSensor() = 0;
   bool stop = false;
   void writeSensorData(std::vector<uint8_t> data);
   int num;
@@ -539,7 +540,7 @@ class GPS_Sensor : public Sensor {
 public:
   GPS_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
-
+  void resetSensor(){};
 private:
   uart_inst_t *uart_id = uart0;
 };
@@ -547,6 +548,7 @@ class ADXL345_Sensor : public Sensor {
 public:
   ADXL345_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
+  void resetSensor(){};
 
 private:
   void init_sequence();
@@ -558,6 +560,7 @@ class VEML6040_Sensor : public Sensor {
 public:
   VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
+  void resetSensor(){};
 
 private:
   void init_sequence();
@@ -569,6 +572,7 @@ class VL53L0X_Sensor : public Sensor {
 public:
   VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
+  void resetSensor(){};
 
 private:
   VL53L0X sensor;
@@ -580,8 +584,10 @@ class MPU9250_Sensor : public Sensor {
 public:
   MPU9250_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
+  void resetSensor(){};
 
 private:
+  bool enabled = true;
   MPU9250 sensor;
   int i2c_port = 0;
 };
@@ -590,6 +596,7 @@ class HX711_Sensor : public Sensor {
 public:
   HX711_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
+  void resetSensor(){};
 
 private:
   HX711 sensor;
@@ -599,6 +606,7 @@ class INA226_Sensor : public Sensor {
 public:
   INA226_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
   void readSensor();
+  void resetSensor(){};
 
 private:
   INA226_WE *sensor;
@@ -623,8 +631,10 @@ class Module {
 public:
   virtual void readModule() = 0;
   virtual void writeModule(std::vector<uint8_t> &data) = 0;
+  virtual void resetModule() = 0;
   bool stop = false;
   void publishData(std::vector<uint8_t> &data);
+
   int num;
   MODULE_TYPES type = MODULE_TYPES::MAX_MODULES;
 };
@@ -635,6 +645,7 @@ public:
   void readModule();
   void writeModule(std::vector<uint8_t> &data);
   void updateOne(std::vector<uint8_t> &data, size_t i);
+  void resetModule();
   enum REGISTERS : uint8_t {
     LEDn_DIFF = 0x04,
     LEDn_ON_L_base = 0x06,
@@ -656,6 +667,7 @@ public:
   void readModule();
   void writeModule(std::vector<uint8_t> &data);
   bool writeSingle(std::vector<uint8_t> &data, size_t i, bool single);
+  void resetModule(){};
 
 private:
   HiwonderBus *bus;
@@ -668,6 +680,7 @@ public:
   Shutdown_Relay(std::vector<uint8_t> &data);
   void readModule();
   void writeModule(std::vector<uint8_t> &data);
+  void resetModule(){};
 
 private:
   int pin = 0;
