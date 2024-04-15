@@ -144,11 +144,12 @@ public:
       if (isConnectedAK8963()) {
         initAK8963();
         has_connected = true;
-    return 2;
+        return 2;
       } else {
         // if (b_verbose)
         // Serialprintln("Could not connect to AK8963");
-        has_connected = true; // just fake it that it is connected, we can still use the mpu9250 data
+        has_connected = true; // just fake it that it is connected, we can still
+                              // use the mpu9250 data
         return 1;
       }
     } else {
@@ -157,7 +158,6 @@ public:
       has_connected = false;
       return 0;
     }
-    
   }
 
   void sleep(bool b) {

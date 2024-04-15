@@ -1052,18 +1052,18 @@ void ping() {
   }
 }
 
-const auto wd_timeout_time = WATCHDOG_TIME*4/5;
+const auto wd_timeout_time = WATCHDOG_TIME * 4 / 5;
 
 void check_wd_timeout() {
   // if watchdog is about to run out of time, reset modules
- if(time_us_32() - last_ping >= (wd_timeout_time)) {
-    for(auto & sensor: sensors) {
+  if (time_us_32() - last_ping >= (wd_timeout_time)) {
+    for (auto &sensor : sensors) {
       sensor->resetSensor();
     }
-    for(auto & module : modules) {
+    for (auto &module : modules) {
       module->resetModule();
     }
- }
+  }
 }
 
 // SENSORSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
@@ -1236,7 +1236,7 @@ MPU9250_Sensor::MPU9250_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
   }
 }
 void MPU9250_Sensor::readSensor() {
-  if(!this->enabled) {
+  if (!this->enabled) {
     return;
   }
   if (this->sensor.update()) {
@@ -1414,8 +1414,8 @@ void PCA9685_Module::readModule() {
 }
 
 void PCA9685_Module::resetModule() {
-  for(auto i = 0; i < 16; i++) {
-    std::vector<uint8_t> data = {(uint8_t)i, 0,0,0,0};
+  for (auto i = 0; i < 16; i++) {
+    std::vector<uint8_t> data = {(uint8_t)i, 0, 0, 0, 0};
     this->updateOne(data, 0);
   }
 }
@@ -1953,7 +1953,7 @@ int main() {
 #if MIRTE_MASTER
         check_mirte_master();
 #endif
-        if(watchdog_enable) {
+        if (watchdog_enable) {
           check_wd_timeout();
         }
       }
