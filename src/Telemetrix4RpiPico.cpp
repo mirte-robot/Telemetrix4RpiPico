@@ -1052,7 +1052,7 @@ void ping() {
   }
 }
 
-const auto wd_timeout_time = WATCHDOG_TIME * 4 / 5;
+const auto wd_timeout_time = WATCHDOG_TIME * 4000 / 5;
 
 void check_wd_timeout() {
   // if watchdog is about to run out of time, reset modules
