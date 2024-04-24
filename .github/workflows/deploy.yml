@@ -39,3 +39,51 @@ jobs:
             if: startsWith(github.ref, 'refs/tags/')
             with:
                 files: Telemetrix4RpiPico.uf2
+    upload_private_server:
+      needs: [build-deploy] # 
+      runs-on: ubuntu-latest
+      steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Extract branch name
+              shell: bash
+              run: |
+                echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+                echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
+              id: extract_branch
+            - name: Download artifact
+              id: download
+              uses: actions/download-artifact@v4
+              with:
+                path: upload
+
+            - name: List artifact
+              run: |
+                ls ${{ github.workspace }}
+                mkdir ${{ github.workspace }}/upload/mirte
+                ls ${{ github.workspace }}/upload
+                tree ${{ github.workspace }}/upload
+                # for every file ending in .img.xz, remove last part of the path
+                for file in $(find ${{ github.workspace }}/upload/ -name '*.uf2'); do
+                    f=$(basename $file)
+                    echo $f
+                    mv $file ${{ github.workspace }}/upload/mirte/"${f}"
+                done
+            - name: Upload to private server
+              run: |
+                sudo apt update
+                sudo apt install sshpass
+                mkdir -p ~/.ssh
+                ssh-keyscan arend-jan.com >> ~/.ssh/known_hosts
+                export SSHPASS=${{ secrets.MIRTEFILES }}
+                sshpass -e sftp mirtefiles@arend-jan.com << ASDF
+                    rm files/telemetrix/${{ steps.extract_branch.outputs.branch }}_old/*
+                    rmdir files/telemetrix/${{ steps.extract_branch.outputs.branch }}_old
+                    rename files/telemetrix/${{ steps.extract_branch.outputs.branch }} files/telemetrix/${{ steps.extract_branch.outputs.branch }}_old
+                    mkdir files/telemetrix/${{ steps.extract_branch.outputs.branch }}
+                    ! touch uploading.txt
+                    put uploading.txt files/telemetrix/${{ steps.extract_branch.outputs.branch }}/uploading.txt
+                    put upload/mirte/* /files/telemetrix/${{ steps.extract_branch.outputs.branch }}/
+                    rm files/telemetrix/${{ steps.extract_branch.outputs.branch }}/uploading.txt
+                    bye
+                ASDF
