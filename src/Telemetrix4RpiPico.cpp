@@ -1026,7 +1026,7 @@ void scan_sonars() {
   if(current_time - last_scan < 100'000) {
     return; // Only update at 10Hz.
   }
-  last_scan = time_us_32();
+  last_scan+=100'000;
   for (int i = 0; i <= sonar_count; i++) {
     hc_sr04_descriptor *sonar = &the_hc_sr04s.sonars[i];
     if (sonar->last_time_diff ==
@@ -1048,10 +1048,12 @@ void scan_sonars() {
       continue;
     }
     sonar->last_dist = distance;
+
     sonar_report_message[SONAR_TRIG_PIN] = (uint8_t)sonar->trig_pin;
     sonar_report_message[M_WHOLE_VALUE] = distance / 100;
     sonar_report_message[CM_WHOLE_VALUE] = (distance) % 100;
     serial_write(sonar_report_message, 5);
+    
     if(sonar->last_time_diff == 0) { // disable for next rounds when there is no new value for too long
       sonar->last_time_diff = -1;
     } else { // set distance to 0 if there is no scan value
