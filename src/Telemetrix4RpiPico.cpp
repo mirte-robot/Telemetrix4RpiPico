@@ -694,10 +694,19 @@ void scan_encoders() {
 }
 
 bool sonar_timer_callback(
-    repeating_timer_t *rt) { // periodically trigger all sonars at the same time
-  gpio_set_mask(the_hc_sr04s.trigger_mask);
+    repeating_timer_t *rt) {
+      // every interrupt, trigger one sonar and increase counter for next round.
+      // results in 10Hz per sonar, without crosstalk.
+  static int sonar_counter = 0;
+  auto sonar_pin = the_hc_sr04s.sonars[sonar_counter].trig_pin;
+  sonar_counter++;
+  if(sonar_counter> sonar_count){
+    sonar_counter = 0;
+  }
+  gpio_put(sonar_pin, 1);
   busy_wait_us(10);
-  gpio_clr_mask(the_hc_sr04s.trigger_mask);
+  gpio_put(sonar_pin, 0);
+
   return true;
 }
 
@@ -707,21 +716,22 @@ void sonar_new() {
   uint trig_pin = command_buffer[SONAR_TRIGGER_PIN];
   uint echo_pin = command_buffer[SONAR_ECHO_PIN];
 
-  // for the first HC-SR04, add the program.
-  if (sonar_count == -1) {
-    // Init timer
-    int hz = 10;
-    // negative timeout means exact delay (rather than delay between callbacks)
-    if (!add_repeating_timer_us(-1000000 / hz, sonar_timer_callback, NULL,
-                                &the_hc_sr04s.trigger_timer)) {
-      printf("Failed to add timer\n");
-      return;
-    }
+ 
+//  first cancel timer to not trigger during adding the sonar
+  if (sonar_count != -1) {
+    // When it's the first sonar, no timer has been added yet
+    // When already created one timer, remove it before recreating it at a higher rate.
+    cancel_repeating_timer(&the_hc_sr04s.trigger_timer);
   }
-  sonar_count++;
+
+
+ sonar_count++;
+//  count == 0 -> 1 sonars
+// count is actually the index...
   if (sonar_count > MAX_SONARS) {
     return;
   }
+
   the_hc_sr04s.sonars[sonar_count].trig_pin = trig_pin;
   the_hc_sr04s.sonars[sonar_count].echo_pin = echo_pin;
   the_hc_sr04s.sonars[sonar_count].last_time_diff = 0;
@@ -732,6 +742,16 @@ void sonar_new() {
   gpio_set_dir(echo_pin, GPIO_IN);
   gpio_set_irq_enabled_with_callback(
       echo_pin, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &sonar_callback);
+
+
+
+   // Add or update timer when adding a new sonar, to trigger at 10Hz/sonar
+    int hz = 10 * (sonar_count+1); // 10 hz per sonar
+    // negative timeout means exact delay (rather than delay between callbacks)
+    if (!add_repeating_timer_ms(1000 / hz, sonar_timer_callback, NULL,
+                                &the_hc_sr04s.trigger_timer)) {
+      return;
+    }
 }
 
 bool repeating_timer_callback(struct repeating_timer *t) {
@@ -1008,7 +1028,9 @@ void scan_sonars() {
   uint32_t current_time = time_us_32();
   for (int i = 0; i <= sonar_count; i++) {
     hc_sr04_descriptor *sonar = &the_hc_sr04s.sonars[i];
-
+    if(sonar->last_time_diff == -1) { // Only when we have a fresh value send an update
+      continue;
+    }
     if ((current_time - sonar->start_time) >
         1000000) // if too long since last trigger, send 0
     {
@@ -1018,13 +1040,17 @@ void scan_sonars() {
       sonar->last_time_diff = 0; // HC-SR04 has max range of 4 / 5m, with a
                                  // timeout pulse longer than 35ms
     }
-    // 0.1mm increments
-    int distance = (sonar->last_time_diff) / (58.0 / 100);
-
+    // 1cm increments
+    int distance = (sonar->last_time_diff) / (58.0);
+    if(distance == sonar->last_dist) {
+      continue;
+    }
+    sonar->last_dist = distance;
     sonar_report_message[SONAR_TRIG_PIN] = (uint8_t)sonar->trig_pin;
-    sonar_report_message[M_WHOLE_VALUE] = distance / 10000;
-    sonar_report_message[CM_WHOLE_VALUE] = (distance / 100) % 100;
+    sonar_report_message[M_WHOLE_VALUE] = distance / 100;
+    sonar_report_message[CM_WHOLE_VALUE] = (distance) % 100;
     serial_write(sonar_report_message, 5);
+    sonar->last_time_diff = -1;
   }
 }
 bool watchdog_enabled = false;
