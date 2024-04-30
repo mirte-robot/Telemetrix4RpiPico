@@ -1047,7 +1047,11 @@ void scan_sonars() {
     sonar_report_message[M_WHOLE_VALUE] = distance / 100;
     sonar_report_message[CM_WHOLE_VALUE] = (distance) % 100;
     serial_write(sonar_report_message, 5);
-    sonar->last_time_diff = -1;
+    if(sonar->last_time_diff == 0) {
+      sonar->last_time_diff = -1;
+    } else {
+    sonar->last_time_diff = 0;
+    }
   }
 }
 bool watchdog_enabled = false;
