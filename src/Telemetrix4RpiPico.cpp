@@ -1600,7 +1600,8 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
     auto id = data[1];
     int16_t min = ((int16_t)data[2] << 8) | data[3];
     int16_t max = ((int16_t)data[4] << 8) | data[5];
-    this->servos[id]->setLimitsTicks(min / 24, max / 24); // 24 centidegrees per tick
+    this->servos[id]->setLimitsTicks(min / 24,
+                                     max / 24); // 24 centidegrees per tick
   } else if (msg_type == 6) {
     // read range of servo stored in servo
     auto id = data[1];
@@ -1617,7 +1618,7 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
   } else if (msg_type == 7) { // Set offset in centideg
     auto id = data[1];
     int16_t offset = ((int16_t)data[2] << 8) | data[3];
-    offset/=24;
+    offset /= 24;
     this->servos[id]->angle_offset_adjust(offset);
     this->servos[id]->angle_offset_save();
   } else if (msg_type == 8) {
