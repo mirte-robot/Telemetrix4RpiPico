@@ -1089,6 +1089,8 @@ void ping() {
 
 const auto wd_timeout_time = WATCHDOG_TIME * 4000 / 5;
 
+bool timeout_safe() { return time_us_32() - last_ping < wd_timeout_time / 2; }
+
 void check_wd_timeout() {
   // if watchdog is about to run out of time, reset modules
   if (time_us_32() - last_ping >= (wd_timeout_time)) {
@@ -1544,6 +1546,9 @@ bool Hiwonder_Servo::writeSingle(std::vector<uint8_t> &data, size_t i,
 
 void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
   auto msg_type = data[0];
+  if (!timeout_safe()) {
+    return;
+  }
   if (msg_type == 1) { // normal set angle command with one or multiple servos
     auto count = data[1];
     // If just one, directly move, otherwise wait for the other commands to
@@ -1633,6 +1638,9 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
 }
 
 void Hiwonder_Servo::readModule() {
+  if (!timeout_safe()) {
+    return;
+  }
   if (this->enabled_servos == 0) {
     return;
   }
