@@ -3,6 +3,7 @@
 #include "hardware/irq.h"
 #include "hardware/uart.h"
 #include "pico/stdlib.h"
+#include <algorithm>
 #include <stdio.h>
 const auto BROADCAST_ID = 0xFE;
 
@@ -334,6 +335,35 @@ public:
       }
     }
   }
+
+  // Command name: SERVO_VIN_LIMIT_WRITE Command value: 22
+  // Length: 7
+  // Parameter 1: lower 8 bits of minimum input voltage
+  // Parameter 2: higher 8 bits of minimum input voltage, range 4500~12000mv
+  // Parameter 3: lower 8 bits of maximum input voltage
+  // Parameter 4: higher 8 bits of maximum input voltage, range 4500~12000mv
+  // And the minimum input voltage should always be less than the maximum input
+  // voltage. The command is sent to the servo, and the input voltage of the
+  // servo will be limited between the minimum and the maximum. If the servo is
+  // out of range, the led will flash and alarm (if an LED alarm is set). In
+  // order to protect the servo, the motor will be in the unloaded power
+  // situation, and the servo will not output torque and the input limited
+  // voltage value supports for power-down save.
+  void setVoltageLimits(uint32_t lower, uint32_t upper) {
+    lower = std::clamp<uint32_t>(lower, 4500, 14000);
+    upper = std::clamp<uint32_t>(upper, lower + 1, 14000);
+    uint8_t params[] = {(uint8_t)lower, (uint8_t)(lower >> 8), (uint8_t)upper,
+                        (uint8_t)(upper >> 8)};
+    for (auto i = 0; i < 2; i++) {
+      commandOK = _bus->write(HiwonderCommands::VIN_LIMIT_WRITE, params,
+                              sizeof(params), _id);
+
+      if (isCommandOk()) {
+        return;
+      }
+    }
+  }
+
   int32_t getMinCentDegrees() { return minCentDegrees; }
   int32_t getMaxCentDegrees() { return maxCentDegrees; }
   bool isCommandOk() { return commandOK; }

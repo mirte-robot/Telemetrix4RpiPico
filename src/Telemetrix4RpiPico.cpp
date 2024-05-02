@@ -1634,6 +1634,11 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
                                  (uint8_t)(offset >> 8),
                                  (uint8_t)(offset & 0xff)};
     this->publishData(data);
+  } else if (msg_type == 9) { // write voltage limits
+    auto id = data[1];
+    uint32_t vMin = ((uint16_t)data[2] << 8) | data[3];
+    uint32_t vMax = ((uint16_t)data[4] << 8) | data[5];
+    this->servos[id]->setVoltageLimits(vMin, vMax);
   }
 }
 
