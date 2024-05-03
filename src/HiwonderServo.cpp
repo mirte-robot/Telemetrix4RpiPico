@@ -4,12 +4,14 @@
 #include "i2c_helpers.hpp"
 #include "pico/stdlib.h"
 #include <stdio.h>
+
 // write a command with the provided parameters
 // returns true if the command was written without conflict onto the bus
 bool HiwonderBus::write_no_retry(uint8_t cmd, const uint8_t *params,
                                  int param_cnt, uint8_t MYID) {
-  if (param_cnt < 0 || param_cnt > 4)
+  if (param_cnt < 0 || param_cnt > 4) {
     return false;
+  }
 
   // prepare packet in a buffer
   int buflen = 6 + param_cnt;
@@ -77,63 +79,64 @@ bool HiwonderBus::rcv(uint8_t cmd, uint8_t *params, int param_len,
       case 0:
       case 1:
         if (ch != 0x55) {
-          if (_debug)
-            printf("Err expected header 0x55 = %X\n", ch);
+          // if (_debug)
+          //   printf("Err expected header 0x55 = %X\n", ch);
           return false;
         }
         break;
       case 2:
         if (ch != MYID && MYID != 0xfe) {
-          if (_debug)
-            printf("Err id %X %X\n", MYID, ch);
+          // if (_debug)
+          // printf("Err id %X %X\n", MYID, ch);
           // Serial.println(" ERR (id)\n");
           return false;
         }
         break;
       case 3:
         if (ch < 3 || ch > 7) {
-          if (_debug)
-            printf("Err len %X\n", ch);
+          // if (_debug)
+          //   printf("Err len %X\n", ch);
 
           return false;
         }
         len = ch + 3;
         if (len > param_len + 6) {
-          if (_debug)
+          // if (_debug)
 
-            printf("Err len got %X vs %X\n", len, param_len + 6);
+          //   printf("Err len got %X vs %X\n", len, param_len + 6);
           return false;
         }
         break;
       case 4:
         if (ch != cmd) {
-          if (_debug)
-            printf(" ERR (cmd) %X  vs %X\n", ch, cmd);
+          // if (_debug)
+          //   printf(" ERR (cmd) %X  vs %X\n", ch, cmd);
           return false;
         }
         break;
       default:
         if (got == len - 1) {
           if ((uint8_t)ch == (uint8_t)~sum) {
-            if (_deepDebug)
-              printf("OK msg\n");
+            // if (_deepDebug)
+            //   printf("OK msg\n");
             return true;
           } else {
-            if (_debug)
-              printf("checksum err\n");
+            // if (_debug)
+            //   printf("checksum err\n");
             return false;
           }
         }
         if (got - 5 > param_len) {
-          if (_debug)
-            printf("checksum err2\n");
+          // if (_debug)
+          //   printf("checksum err2\n");
 
           return false;
         }
         params[got - 5] = ch;
       }
-      if (got > 1)
+      if (got > 1) {
         sum += ch;
+      }
       got++;
     }
   }

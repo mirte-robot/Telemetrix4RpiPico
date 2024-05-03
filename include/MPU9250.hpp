@@ -216,8 +216,9 @@ public:
   }
 
   bool update() {
-    if (!available())
+    if (!available()) {
       return false;
+    }
 
     update_accel_gyro();
     update_mag();
@@ -349,8 +350,9 @@ public:
   void selectFilter(QuatFilterSel sel) { quat_filter.select_filter(sel); }
 
   void setFilterIterations(const size_t n) {
-    if (n > 0)
+    if (n > 0) {
       n_filter_iter = n;
+    }
   }
 
   bool selftest() { return self_test_impl(); }
@@ -513,9 +515,9 @@ public:
     rpy[1] *= 180.0f / PI;
     rpy[2] *= 180.0f / PI;
     rpy[2] += magnetic_declination;
-    if (rpy[2] >= +180.f)
+    if (rpy[2] >= +180.f) {
       rpy[2] -= 360.f;
-    else if (rpy[2] < -180.f)
+    } else if (rpy[2] < -180.f)
       rpy[2] += 360.f;
 
     lin_acc[0] = a[0] + a31;
@@ -847,19 +849,17 @@ private:
   }
 
   void collect_mag_data_to(float *m_bias, float *m_scale) {
-    if (b_verbose)
-      // Serialprintln("Mag Calibration: Wave device in a figure eight until
-      // done!");
-      sleep_ms(4000);
+
+    sleep_ms(4000);
 
     // shoot for ~fifteen seconds of mag data
     uint16_t sample_count = 0;
-    if (MAG_MODE == 0x02)
+    if (MAG_MODE == 0x02) {
       sample_count = 128; // at 8 Hz ODR, new mag data is available every 125 ms
-    else if (MAG_MODE == 0x06) // in this library, fixed to 100Hz
+    } else if (MAG_MODE == 0x06) { // in this library, fixed to 100Hz
       sample_count =
           1500; // at 100 Hz ODR, new mag data is available every 10 ms
-
+    }
     int32_t bias[3] = {0, 0, 0}, scale[3] = {0, 0, 0};
     int16_t mag_max[3] = {-32767, -32767, -32767};
     int16_t mag_min[3] = {32767, 32767, 32767};
@@ -867,15 +867,19 @@ private:
     for (uint16_t ii = 0; ii < sample_count; ii++) {
       read_mag(mag_temp); // Read the mag data
       for (int jj = 0; jj < 3; jj++) {
-        if (mag_temp[jj] > mag_max[jj])
+        if (mag_temp[jj] > mag_max[jj]) {
           mag_max[jj] = mag_temp[jj];
-        if (mag_temp[jj] < mag_min[jj])
+        }
+        if (mag_temp[jj] < mag_min[jj]) {
           mag_min[jj] = mag_temp[jj];
+        }
       }
-      if (MAG_MODE == 0x02)
+      if (MAG_MODE == 0x02) {
         sleep_ms(135); // at 8 Hz ODR, new mag data is available every 125 ms
-      if (MAG_MODE == 0x06)
+      }
+      if (MAG_MODE == 0x06) {
         sleep_ms(12); // at 100 Hz ODR, new mag data is available every 10 ms
+      }
     }
 
     if (b_verbose) {
@@ -1144,8 +1148,9 @@ private:
     // wire->write(subAddress);             // Put slave register address in Tx
     // buffer wire->write(data);                   // Put data in Tx buffer
     // i2c_err_ = wire->endTransmission();  // Send the Tx buffer
-    if (i2c_err_)
+    if (i2c_err_) {
       print_i2c_error();
+    }
   }
 
   uint8_t read_byte(uint8_t address, uint8_t subAddress) {
@@ -1187,10 +1192,11 @@ private:
   }
 
   void print_i2c_error() {
-    if (i2c_err_ == 7)
+    if (i2c_err_ == 7) {
       return; // to avoid stickbreaker-i2c branch's error code
               // Serialprint("I2C ERROR CODE : ");
               // Serialprintln(i2c_err_);
+    }
   }
 };
 

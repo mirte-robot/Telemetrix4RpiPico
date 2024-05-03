@@ -35,10 +35,11 @@ uint8_t shiftInSlow(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder) {
   for (i = 0; i < 8; ++i) {
     gpio_put(clockPin, 1);
     busy_wait_us(1);
-    if (bitOrder == LSBFIRST)
+    if (bitOrder == LSBFIRST) {
       value |= gpio_get(dataPin) << i;
-    else
+    } else {
       value |= gpio_get(dataPin) << (7 - i);
+    }
     gpio_put(clockPin, 0);
     busy_wait_us(1);
   }

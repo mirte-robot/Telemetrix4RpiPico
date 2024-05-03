@@ -96,8 +96,9 @@ public:
 
     // Normalise accelerometer measurement
     double a_norm = ax * ax + ay * ay + az * az;
-    if (a_norm == 0.)
+    if (a_norm == 0.) {
       return; // handle NaN
+    }
     recipNorm = 1.0 / sqrt(a_norm);
     ax *= recipNorm;
     ay *= recipNorm;
@@ -105,8 +106,9 @@ public:
 
     // Normalise magnetometer measurement
     double m_norm = mx * mx + my * my + mz * mz;
-    if (m_norm == 0.)
+    if (m_norm == 0.) {
       return; // handle NaN
+    }
     recipNorm = 1.0 / sqrt(m_norm);
     mx *= recipNorm;
     my *= recipNorm;

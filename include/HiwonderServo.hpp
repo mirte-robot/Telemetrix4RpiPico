@@ -65,9 +65,9 @@ public:
 
     auto in = uart_init(uart_id, BAUD_RATE);
     int actual = uart_set_baudrate(uart_id, BAUD_RATE);
-    if (_debug) {
-      printf("in %i act %i en %i\n", in, actual, uart_is_enabled(uart_id));
-    }
+    // if (_debug) {
+    //   printf("in %i act %i en %i\n", in, actual, uart_is_enabled(uart_id));
+    // }
     // Set UART flow control CTS/RTS, we don't want these, so turn them off
     uart_set_hw_flow(uart_id, false, false);
     uart_set_translate_crlf(uart_id, false);
@@ -124,8 +124,9 @@ public:
     } else {
       for (int i = 0; i < retry; i++) {
         bool ok = write_no_retry(cmd, params, param_cnt, MYID);
-        if (ok)
+        if (ok) {
           return true;
+        }
       }
     }
     return false;
@@ -144,8 +145,9 @@ public:
     } else {
       for (int i = 0; i < retry; i++) {
         bool ok = read_no_retry(cmd, params, param_len, MYID);
-        if (ok)
+        if (ok) {
           return true;
+        }
       }
     }
     return false;
@@ -320,10 +322,12 @@ public:
     return true;
   }
   void setLimitsTicks(int32_t lower, int32_t upper) {
-    if (lower < 0)
+    if (lower < 0) {
       lower = 0;
-    if (upper > 1000)
+    }
+    if (upper > 1000) {
       upper = 1000;
+    }
     for (int i = 0; i < 2; i++) {
       uint8_t params[] = {(uint8_t)lower, (uint8_t)(lower >> 8), (uint8_t)upper,
                           (uint8_t)(upper >> 8)};
@@ -437,8 +441,9 @@ public:
       // attempted " + String(angle));
       angle = minCentDegrees;
     }
-    if (isMotorMode)
+    if (isMotorMode) {
       motor_mode(0);
+    }
     angle = (angle - staticOffset) / 24;
     if (angle > 1000) {
       angle = 1000;
@@ -479,10 +484,9 @@ public:
       angle = minCentDegrees;
       // Serial.println("ERROR Capped set at min " + String(minCentDegrees));
     }
-    if (isMotorMode)
+    if (isMotorMode) {
       motor_mode(0);
-    //		if(_bus->_debug)
-    //			// Serial.println("Setting motor to "+String(angle));
+    }
     angle = (angle - staticOffset) / 24;
     uint8_t params[] = {(uint8_t)angle, (uint8_t)(angle >> 8), (uint8_t)time,
                         (uint8_t)(time >> 8)};
@@ -549,8 +553,9 @@ public:
                         (uint8_t)(speed >> 8)};
     commandOK =
         _bus->write(HiwonderCommands::OR_MOTOR_MODE_WRITE, params, 4, _id);
-    if (commandOK)
+    if (commandOK) {
       isMotorMode = isMotorMode_tmp;
+    }
   }
   // angle_adjust sets the position angle offset in centi-degrees (-3000..3000)
   void angle_offset_save() {
@@ -624,8 +629,9 @@ public:
   void id_write(uint8_t id) {
     uint8_t params[] = {id};
     bool ok = _bus->write(HiwonderCommands::ID_WRITE, params, 1, BROADCAST_ID);
-    if (ok && _id != BROADCAST_ID)
+    if (ok && _id != BROADCAST_ID) {
       _id = id;
+    }
     commandOK = ok;
   }
   /**

@@ -653,7 +653,7 @@ bool create_encoder_timer() {
 */
   if (!add_repeating_timer_us(-1000000 / hz, encoder_callback, NULL,
                               &encoders.trigger_timer)) {
-    printf("Failed to add timer\n");
+    // printf("Failed to add timer\n");
     return false;
   }
   return true;
@@ -715,15 +715,13 @@ void sonar_new() {
   uint trig_pin = command_buffer[SONAR_TRIGGER_PIN];
   uint echo_pin = command_buffer[SONAR_ECHO_PIN];
 
-
-
   //  count == 0 -> 1 sonars
   // count is actually the index...
-  if (sonar_count >= (MAX_SONARS-1)) {
+  if (sonar_count >= (MAX_SONARS - 1)) {
     return;
   }
 
-   //  first cancel timer to not trigger during adding the sonar
+  //  first cancel timer to not trigger during adding the sonar
   if (sonar_count > -1) {
     // When it's the first sonar, no timer has been added yet
     // When already created one timer, remove it before recreating it at a
@@ -1790,17 +1788,20 @@ void read_dht(uint dht_pin) {
     while (gpio_get(dht_pin) == last) {
       count++;
       sleep_us(1);
-      if (count == 255)
+      if (count == 255) {
         break;
+      }
     }
     last = gpio_get(dht_pin);
-    if (count == 255)
+    if (count == 255) {
       break;
+    }
 
     if ((i >= 4) && (i % 2 == 0)) {
       data[j / 8] <<= 1;
-      if (count > 46)
+      if (count > 46) {
         data[j / 8] |= 1;
+      }
       j++;
     }
   }
@@ -2003,7 +2004,8 @@ int main() {
         scan_encoders();
         readSensors();
 #if MIRTE_MASTER
-        // check_mirte_master(); // Not needed anymore, as relay and transistors are broken
+        // check_mirte_master(); // Not needed anymore, as relay and transistors
+        // are broken
 #endif
         if (watchdog_enable) {
           check_wd_timeout();
