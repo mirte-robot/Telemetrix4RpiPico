@@ -24,7 +24,9 @@ jobs:
               chmod +x build.sh
               ./build.sh
           - name: Copy uf2 file
-            run: cp ./build2/Telemetrix4RpiPico.uf2 ./
+            run: |
+              cp ./build2/Telemetrix4RpiPico.uf2 ./
+              cp ./build2/Telemetrix4RpiPico.elf ./
           - name: Put environment variable into the env context
             run: echo "app_name=$APP_NAME" >> $GITHUB_ENV
           - name: Archive production artifacts
@@ -33,6 +35,7 @@ jobs:
               name: dist
               path: |
                 Telemetrix4RpiPico.uf2
+                Telemetrix4RpiPico.elf
             
           - name: Push to release
             uses: softprops/action-gh-release@v1
