@@ -13,3 +13,4 @@ cd build2
 # Build for the artifacts:
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
+sha256sum * || true

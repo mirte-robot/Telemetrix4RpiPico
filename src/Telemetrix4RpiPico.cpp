@@ -715,20 +715,22 @@ void sonar_new() {
   uint trig_pin = command_buffer[SONAR_TRIGGER_PIN];
   uint echo_pin = command_buffer[SONAR_ECHO_PIN];
 
-  //  first cancel timer to not trigger during adding the sonar
-  if (sonar_count != -1) {
+
+
+  //  count == 0 -> 1 sonars
+  // count is actually the index...
+  if (sonar_count >= (MAX_SONARS-1)) {
+    return;
+  }
+
+   //  first cancel timer to not trigger during adding the sonar
+  if (sonar_count > -1) {
     // When it's the first sonar, no timer has been added yet
     // When already created one timer, remove it before recreating it at a
     // higher rate.
     cancel_repeating_timer(&the_hc_sr04s.trigger_timer);
   }
-
   sonar_count++;
-  //  count == 0 -> 1 sonars
-  // count is actually the index...
-  if (sonar_count > MAX_SONARS) {
-    return;
-  }
 
   the_hc_sr04s.sonars[sonar_count].trig_pin = trig_pin;
   the_hc_sr04s.sonars[sonar_count].echo_pin = echo_pin;
@@ -2001,7 +2003,7 @@ int main() {
         scan_encoders();
         readSensors();
 #if MIRTE_MASTER
-        check_mirte_master();
+        // check_mirte_master(); // Not needed anymore, as relay and transistors are broken
 #endif
         if (watchdog_enable) {
           check_wd_timeout();
