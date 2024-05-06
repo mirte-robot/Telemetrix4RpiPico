@@ -11,6 +11,6 @@ rm -rf build2
 mkdir build2
 cd build2
 # Build for the artifacts:
-cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 make
 sha256sum * || true
