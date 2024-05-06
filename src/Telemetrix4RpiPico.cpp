@@ -1404,6 +1404,7 @@ void module_new() {
   } else if (type == MODULE_TYPES::HIWONDER_SERVO) {
     module = new Hiwonder_Servo(data);
   } else if (type == MODULE_TYPES::SHUTDOWN_RELAY) {
+    return;
     module = new Shutdown_Relay(data);
   }
 
@@ -1892,7 +1893,11 @@ bool check_usb_connection() {
 }
 #define MIRTE_MASTER 1
 #if MIRTE_MASTER
+#define DISABLE_USB_CHECK 1
 void check_mirte_master() {
+#if DISABLE_USB_CHECK
+return;
+#endif
   if (uart_enabled) {
     // Not a mirte master pcb (with tied uart pins)
     return;
@@ -2004,7 +2009,7 @@ int main() {
         scan_encoders();
         readSensors();
 #if MIRTE_MASTER
-        // check_mirte_master(); // Not needed anymore, as relay and transistors
+        check_mirte_master(); // Not needed anymore, as relay and transistors
         // are broken
 #endif
         if (watchdog_enable) {
