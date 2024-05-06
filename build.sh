@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+git config --global --add safe.directory /__w/Telemetrix4RpiPico/Telemetrix4RpiPico # fix for cmake not reading git stuff
 mkdir build2/
 ls
 cd build2
