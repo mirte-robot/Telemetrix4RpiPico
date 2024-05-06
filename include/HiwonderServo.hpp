@@ -40,7 +40,7 @@ enum class HiwonderCommands : uint8_t {
 class HiwonderBus {
 private:
   int lastCommand = 0;
-  typeof(uart1) uart_id;
+  typeof(uart1) uart_id = uart1;
 
 public:
   bool _debug = false;

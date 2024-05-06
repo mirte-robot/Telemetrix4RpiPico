@@ -622,7 +622,7 @@ private:
   }
 
   int16_t read_temperature_data() {
-    uint8_t raw_data[2]; // x/y/z gyro register data stored here
+    uint8_t raw_data[2] = {0}; // x/y/z gyro register data stored here
     read_bytes(mpu_i2c_addr, TEMP_OUT_H, 2,
                &raw_data[0]); // Read the two raw data registers sequentially
                               // into data array

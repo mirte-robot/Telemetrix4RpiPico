@@ -22,8 +22,7 @@ add_executable(
 
 target_include_directories(Telemetrix4RpiPico
                            PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/)
-# target_compile_options(Telemetrix4RpiPico PRIVATE -Wall -Wextra -Wpedantic
-# -Werror)
+# target_compile_options(Telemetrix4RpiPico PRIVATE  -Wall -Wextra -Wpedantic -Werror  -Wuninitialized)
 pico_generate_pio_header(Telemetrix4RpiPico
                          ${CMAKE_CURRENT_LIST_DIR}/src/Telemetrix4RpiPico.pio)
 pico_enable_stdio_usb(Telemetrix4RpiPico 1)
@@ -52,3 +51,4 @@ add_custom_target(
   COMMAND ls -lh ${CMAKE_BINARY_DIR}/lint.out
   VERBATIM
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+

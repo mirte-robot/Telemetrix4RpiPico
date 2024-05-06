@@ -696,7 +696,7 @@ void scan_encoders() {
 bool sonar_timer_callback(repeating_timer_t *rt) {
   // every interrupt, trigger one sonar and increase counter for next round.
   // results in 10Hz per sonar, without crosstalk.
-  static int sonar_counter = 0;
+static  uint8_t sonar_counter = 0;
   auto sonar_pin = the_hc_sr04s.sonars[sonar_counter].trig_pin;
   sonar_counter++;
   if (sonar_counter > sonar_count) {
@@ -705,7 +705,6 @@ bool sonar_timer_callback(repeating_timer_t *rt) {
   gpio_put(sonar_pin, 1);
   busy_wait_us(10);
   gpio_put(sonar_pin, 0);
-
   return true;
 }
 
@@ -714,7 +713,6 @@ void sonar_new() {
   // the main loop
   uint trig_pin = command_buffer[SONAR_TRIGGER_PIN];
   uint echo_pin = command_buffer[SONAR_ECHO_PIN];
-
   //  count == 0 -> 1 sonars
   // count is actually the index...
   if (sonar_count >= (MAX_SONARS - 1)) {
@@ -1404,7 +1402,8 @@ void module_new() {
   } else if (type == MODULE_TYPES::HIWONDER_SERVO) {
     module = new Hiwonder_Servo(data);
   } else if (type == MODULE_TYPES::SHUTDOWN_RELAY) {
-    module = new Shutdown_Relay(data);
+    return; // not implemented
+    // module = new Shutdown_Relay(data);
   }
 
   module->type = type;
@@ -1682,16 +1681,16 @@ void Hiwonder_Servo::readModule() {
   }
 }
 
-Shutdown_Relay::Shutdown_Relay(std::vector<uint8_t> &data) {
-  this->pin = data[0];
-  this->enable_on = data[1];
-  this->wait_time = data[2]; // seconds
-  gpio_init(this->pin);
-  gpio_set_dir(this->pin, GPIO_OUT);
-  gpio_put(this->pin, !this->enable_on);
-  this->start_time = time_us_32();
-  this->enabled = false;
-}
+// Shutdown_Relay::Shutdown_Relay(std::vector<uint8_t> &data) {
+//   this->pin = data[0];
+//   this->enable_on = data[1];
+//   this->wait_time = data[2]; // seconds
+//   gpio_init(this->pin);
+//   gpio_set_dir(this->pin, GPIO_OUT);
+//   gpio_put(this->pin, !this->enable_on);
+//   this->start_time = time_us_32();
+//   this->enabled = false;
+// }
 void disable_watchdog() {
   hw_clear_bits(&watchdog_hw->ctrl, WATCHDOG_CTRL_ENABLE_BITS);
 }
@@ -1702,36 +1701,36 @@ void enable_watchdog() {
   watchdog_update();
 }
 
-void Shutdown_Relay::readModule() {
-  if (this->enabled) {
-    if (time_us_32() - this->start_time > (this->wait_time * 1'000'000)) {
-      gpio_put(this->pin, this->enable_on);
-      // relay will be turned off and power will be cut
+// void Shutdown_Relay::readModule() {
+//   if (this->enabled) {
+//     if (time_us_32() - this->start_time > (this->wait_time * 1'000'000)) {
+//       gpio_put(this->pin, this->enable_on);
+//       // relay will be turned off and power will be cut
 
-      // enable watchdog and wait for reset when the relay is not connected or
-      // not working. Don't want the pico to be stuck
-      enable_watchdog();
-      while (true) {
-        led_debug(100, 100);
-      }
-    }
-  }
-}
+//       // enable watchdog and wait for reset when the relay is not connected or
+//       // not working. Don't want the pico to be stuck
+//       enable_watchdog();
+//       while (true) {
+//         led_debug(100, 100);
+//       }
+//     }
+//   }
+// }
 
-void Shutdown_Relay::writeModule(std::vector<uint8_t> &data) {
-  if (data[0] == 1) // trigger to start the countdown
-  {
-    this->start_time = time_us_32();
-    this->enabled = true;
-    disable_watchdog();
-    watchdog_enable_shutdown = false; // dont let ping pet the watchdog
-  } else {
-    this->enabled = false;
-    enable_watchdog();
-    watchdog_enable_shutdown = true;
-  }
-  gpio_put(LED_PIN, this->enabled);
-}
+// void Shutdown_Relay::writeModule(std::vector<uint8_t> &data) {
+//   if (data[0] == 1) // trigger to start the countdown
+//   {
+//     this->start_time = time_us_32();
+//     this->enabled = true;
+//     disable_watchdog();
+//     watchdog_enable_shutdown = false; // dont let ping pet the watchdog
+//   } else {
+//     this->enabled = false;
+//     enable_watchdog();
+//     watchdog_enable_shutdown = true;
+//   }
+//   gpio_put(LED_PIN, this->enabled);
+// }
 
 void Module::publishData(std::vector<uint8_t> &data) {
   std::vector<uint8_t> out = {
@@ -1980,14 +1979,13 @@ int main() {
 
   // blink the board LED twice to show that the board is
   // starting afresh
-  led_debug(2, 250);
+  led_debug(5, 250);
   gpio_put(LED_PIN, uart_enabled);
 
   // watchdog_enable(WATCHDOG_TIME, 1); // Add watchdog requiring trigger every
   // 5s
 
   // infinite loop
-  uint32_t start = time_us_32();
   uint32_t last_scan = 0;
   while (true) {
     // watchdog_update();

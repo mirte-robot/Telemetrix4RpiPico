@@ -554,7 +554,7 @@ public:
 
 private:
   void init_sequence();
-  int i2c_port;
+  int i2c_port = 0;
   int i2c_addr = 83;
 };
 
@@ -601,7 +601,7 @@ public:
   void resetSensor(){};
 
 private:
-  HX711 sensor;
+  HX711 sensor = HX711();
 };
 
 class INA226_Sensor : public Sensor {
@@ -611,7 +611,7 @@ public:
   void resetSensor(){};
 
 private:
-  INA226_WE *sensor;
+  INA226_WE *sensor = nullptr;
 };
 
 void sensor_new();
@@ -637,7 +637,7 @@ public:
   bool stop = false;
   void publishData(std::vector<uint8_t> &data);
 
-  int num;
+  int num = 0;
   MODULE_TYPES type = MODULE_TYPES::MAX_MODULES;
 };
 
@@ -672,25 +672,25 @@ public:
   void resetModule(){};
 
 private:
-  HiwonderBus *bus;
-  std::vector<HiwonderServo *> servos;
+  HiwonderBus *bus = nullptr;
+  std::vector<HiwonderServo *> servos = {};
   int enabled_servos = 0;
 };
 
-class Shutdown_Relay : public Module {
-public:
-  Shutdown_Relay(std::vector<uint8_t> &data);
-  void readModule();
-  void writeModule(std::vector<uint8_t> &data);
-  void resetModule(){};
+// class Shutdown_Relay : public Module {
+// public:
+//   Shutdown_Relay(std::vector<uint8_t> &data);
+//   void readModule();
+//   void writeModule(std::vector<uint8_t> &data);
+//   void resetModule(){};
 
-private:
-  int pin = 0;
-  bool enabled = false;
-  bool enable_on = true;
-  int wait_time = 10;
-  decltype(time_us_32()) start_time = 0;
-};
+// private:
+//   int pin = 0;
+//   bool enabled = false;
+//   bool enable_on = true;
+//   int wait_time = 10;
+//   decltype(time_us_32()) start_time = 0;
+// };
 
 std::vector<Module *> modules;
 void module_new();
