@@ -1984,7 +1984,7 @@ int main() {
 
   // blink the board LED twice to show that the board is
   // starting afresh
-  led_debug(5, 250);
+  led_debug(2, 250);
   gpio_put(LED_PIN, uart_enabled);
 
   // watchdog_enable(WATCHDOG_TIME, 1); // Add watchdog requiring trigger every
