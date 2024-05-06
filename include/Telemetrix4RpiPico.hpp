@@ -430,7 +430,7 @@ const int MODULE_REPORT = 34;
 
 /* Firmware Version Values */
 #define FIRMWARE_MAJOR 1
-#define FIRMWARE_MINOR 2
+#define FIRMWARE_MINOR 3
 
 // maximum length of a command packet in bytes
 #define MAX_COMMAND_LENGTH 30
