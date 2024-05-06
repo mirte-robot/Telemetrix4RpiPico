@@ -144,7 +144,7 @@ protected:
   int _wire = 1;
   int i2cAddress = 0x40;
   uint16_t calVal = 0;
-  float corrFactor  = 1.0;
+  float corrFactor = 1.0;
   uint16_t confRegCopy = 0;
   float currentDivider_mA = 0;
   float pwrMultiplier_mW = 0;

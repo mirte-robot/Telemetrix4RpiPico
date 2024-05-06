@@ -696,7 +696,7 @@ void scan_encoders() {
 bool sonar_timer_callback(repeating_timer_t *rt) {
   // every interrupt, trigger one sonar and increase counter for next round.
   // results in 10Hz per sonar, without crosstalk.
-static  uint8_t sonar_counter = 0;
+  static uint8_t sonar_counter = 0;
   auto sonar_pin = the_hc_sr04s.sonars[sonar_counter].trig_pin;
   sonar_counter++;
   if (sonar_counter > sonar_count) {
@@ -1707,7 +1707,8 @@ void enable_watchdog() {
 //       gpio_put(this->pin, this->enable_on);
 //       // relay will be turned off and power will be cut
 
-//       // enable watchdog and wait for reset when the relay is not connected or
+//       // enable watchdog and wait for reset when the relay is not connected
+//       or
 //       // not working. Don't want the pico to be stuck
 //       enable_watchdog();
 //       while (true) {
@@ -1894,7 +1895,7 @@ bool check_usb_connection() {
 #define DISABLE_USB_CHECK 1
 void check_mirte_master() {
 #if DISABLE_USB_CHECK
-return;
+  return;
 #endif
   if (uart_enabled) {
     // Not a mirte master pcb (with tied uart pins)
@@ -2007,7 +2008,7 @@ int main() {
         readSensors();
 #if MIRTE_MASTER
         check_mirte_master(); // Not needed anymore, as relay and transistors
-        // are broken
+                              // are broken
 #endif
         if (watchdog_enable) {
           check_wd_timeout();
