@@ -19,6 +19,13 @@ add_executable(
   src/neopixel.cpp
   src/INA226v2.cpp
   src/HiwonderServo.cpp)
+find_package(Git REQUIRED)
+execute_process(
+  COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+  OUTPUT_VARIABLE COMMIT_ID
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+pico_set_program_version(Telemetrix4RpiPico "1.3_${COMMIT_ID}")
 
 target_include_directories(Telemetrix4RpiPico
                            PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/)
