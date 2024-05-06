@@ -377,7 +377,7 @@ void get_pico_unique_id() {
   unique_id_report_report_message[7] = (board_id.id[5]);
 
   serial_write(unique_id_report_report_message,
-               sizeof(unique_id_report_report_message) / sizeof(int));
+               10);
 }
 
 /********************************************

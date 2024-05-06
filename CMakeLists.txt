@@ -25,7 +25,7 @@ execute_process(
   OUTPUT_VARIABLE COMMIT_ID
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-# pico_set_program_version(Telemetrix4RpiPico "1.3_${COMMIT_ID}")
+pico_set_program_version(Telemetrix4RpiPico "1.3_${COMMIT_ID}")
 
 target_include_directories(Telemetrix4RpiPico
                            PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/)
