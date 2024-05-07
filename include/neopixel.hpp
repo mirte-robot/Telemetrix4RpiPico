@@ -11,7 +11,7 @@
 #include "pico/stdlib.h"
 auto const max_pixels = 100;
 
-static void dma_init(PIO pio, unsigned int sm, uint32_t NEOC_NOF_LEDS_IN_LANE);
+void dma_init(PIO pio, unsigned int sm, uint32_t NEOC_NOF_LEDS_IN_LANE);
 
 class TMX_NeoPixel {
 public:

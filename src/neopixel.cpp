@@ -70,6 +70,8 @@ void TMX_NeoPixel::fill(int RED, int GREEN, int BLUE, bool show) {
 }
 
 static int64_t reset_delay_complete(alarm_id_t id, void *user_data) {
+  (void)id;
+  (void)user_data;
   reset_delay_alarm_id = 0;               // reset alarm id
   sem_release(&reset_delay_complete_sem); // release semaphore
   return 0;                               // no repeat
@@ -89,7 +91,7 @@ void dma_complete_handler(void) {
   }
 }
 
-static void dma_init(PIO pio, unsigned int sm, uint32_t led_count) {
+void dma_init(PIO pio, unsigned int sm, uint32_t led_count) {
   dma_claim_mask(
       DMA_CHANNEL_MASK); // check that the DMA channel we want is available
   dma_channel_config channel_config =

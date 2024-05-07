@@ -61,6 +61,12 @@ public:
 
   void no_filter(float ax, float ay, float az, float gx, float gy, float gz,
                  float mx, float my, float mz, float *q) {
+                  (void)mx;
+                  (void)my;
+                  (void)mz;
+                  (void)ax;
+                  (void)ay;
+                  (void)az;
     float q0 = q[0], q1 = q[1], q2 = q[2],
           q3 = q[3]; // variable for readability
     q[0] += 0.5f * (-q1 * gx - q2 * gy - q3 * gz) * deltaT;
@@ -224,6 +230,9 @@ public:
   // set to 30.
   void mahony(float ax, float ay, float az, float gx, float gy, float gz,
               float mx, float my, float mz, float *q) {
+                (void)mx;
+                (void)my;
+                (void)mz;
     float recipNorm;
     float vx, vy, vz;
     float ex, ey, ez; // error terms
