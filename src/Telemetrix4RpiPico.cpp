@@ -265,10 +265,10 @@ void set_pin_mode() {
     // set frequency
     // determine top given Hz using the free-running clock
     uint32_t f_sys = clock_get_hz(clk_sys);
-    float divider = (float)(f_sys / 1000000UL); // run the pwm clock at 1MHz
+    float divider = (float)(f_sys / 1'000'000UL); // run the pwm clock at 1MHz
     pwm_set_clkdiv(slice_num,
-                   divider);    // pwm clock should now be running at 1MHz
-    top = 1000000UL / f_hz - 1; // calculate the TOP value
+                   divider);      // pwm clock should now be running at 1MHz
+    top = 1'000'000UL / f_hz - 1; // calculate the TOP value
     pwm_set_wrap(slice_num, (uint16_t)top);
 
     // set the current level to 0
@@ -652,7 +652,7 @@ bool encoder_callback(repeating_timer_t *timer) {
 }
 
 bool create_encoder_timer() {
-  int hz = 10000;
+  int hz = 10'000;
   /* blue encoder motor:
   - 110 rpm = ~2 rot/s
   - 540 steps/rot
@@ -663,7 +663,7 @@ bool create_encoder_timer() {
   107 rpm, 1320 ticks/rot
   -> ~1.8 rot/s * 1320 = 2354 ticks/s
 */
-  if (!add_repeating_timer_us(-1000000 / hz, encoder_callback, NULL,
+  if (!add_repeating_timer_us(-1'000'000 / hz, encoder_callback, NULL,
                               &encoders.trigger_timer)) {
     // printf("Failed to add timer\n");
     return false;
@@ -1074,11 +1074,11 @@ void scan_sonars() {
       continue;
     }
     if ((current_time - sonar->start_time) >
-        1000000) // if too long since last trigger, send 0
+        1'000'000) // if too long since last trigger, send 0
     {
       sonar->last_time_diff = 0;
     }
-    if (sonar->last_time_diff > 30000) {
+    if (sonar->last_time_diff > 30'000) {
       sonar->last_time_diff = 0; // HC-SR04 has max range of 4 / 5m, with a
                                  // timeout pulse longer than 35ms
     }
@@ -1358,8 +1358,8 @@ void HX711_Sensor::readSensor() {
 INA226_Sensor::INA226_Sensor(uint8_t sensor_data[SENSORS_MAX_SETTINGS_A]) {
   auto port = sensor_data[0];
   auto addr = sensor_data[1];
-  if (addr < 0b1000000 || addr > 0b1001111) {
-    addr = 0b1000000;
+  if (addr < 0b1000'000 || addr > 0b100'1111) {
+    addr = 0b100'0000;
   }
   this->sensor = new INA226_WE(addr, port);
   if (!this->sensor->init()) {
