@@ -64,7 +64,9 @@ public:
     gpio_set_function(rXpin, GPIO_FUNC_UART);
 
     auto in = uart_init(uart_id, BAUD_RATE);
+    (void)in;
     int actual = uart_set_baudrate(uart_id, BAUD_RATE);
+    (void)actual;
     // if (_debug) {
     //   printf("in %i act %i en %i\n", in, actual, uart_is_enabled(uart_id));
     // }

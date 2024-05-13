@@ -97,7 +97,7 @@ public:
 
   VL53L0X();
 
-  void setBus(uint8_t i2c_bus) { this->bus = bus; }
+  void setBus(uint8_t i2c_bus) { this->bus = i2c_bus; }
   uint8_t getBus() { return bus; }
 
   void setAddress(uint8_t new_addr);
