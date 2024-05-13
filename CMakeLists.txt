@@ -29,9 +29,9 @@ pico_set_program_version(Telemetrix4RpiPico "1.3_${COMMIT_ID}")
 
 target_include_directories(Telemetrix4RpiPico
                            PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/)
-# target_compile_options(Telemetrix4RpiPico PRIVATE  -Wall -Wextra -Wpedantic -Wconversion -Wno-sign-conversion -Wdouble-promotion
-# -Wno-unused-parameter -Wno-unused-function
-# -Werror  -Wuninitialized)
+# target_compile_options(Telemetrix4RpiPico PRIVATE  -Wall -Wextra -Wpedantic
+# -Wconversion -Wno-sign-conversion -Wdouble-promotion -Wno-unused-parameter
+# -Wno-unused-function -Werror  -Wuninitialized)
 pico_generate_pio_header(Telemetrix4RpiPico
                          ${CMAKE_CURRENT_LIST_DIR}/src/Telemetrix4RpiPico.pio)
 pico_enable_stdio_usb(Telemetrix4RpiPico 1)

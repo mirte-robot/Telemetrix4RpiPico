@@ -51,7 +51,10 @@ int sonar_count = -1;
 uint sonar_offset;
 
 // sonar device descriptors
-sonar_data the_hc_sr04s = {.next_sonar_index = 0, .trigger_timer = {}, .trigger_mask = 0, .sonars = {}};
+sonar_data the_hc_sr04s = {.next_sonar_index = 0,
+                           .trigger_timer = {},
+                           .trigger_mask = 0,
+                           .sonars = {}};
 
 // number of active dht devices
 int dht_count = -1;
@@ -376,8 +379,7 @@ void get_pico_unique_id() {
   unique_id_report_report_message[6] = (board_id.id[4]);
   unique_id_report_report_message[7] = (board_id.id[5]);
 
-  serial_write(unique_id_report_report_message,
-               10);
+  serial_write(unique_id_report_report_message, 10);
 }
 
 /********************************************
@@ -838,7 +840,7 @@ void read_blocking_spi() {
   uint8_t repeated_transmit_byte;
   std::vector<uint8_t> data;
   data.resize(command_buffer[SPI_READ_LEN]);
-std::fill(data.begin(), data.end(), 0);
+  std::fill(data.begin(), data.end(), 0);
   // uint8_t data[command_buffer[SPI_READ_LEN]];
 
   if (command_buffer[SPI_PORT] == 0) {
@@ -871,7 +873,7 @@ std::fill(data.begin(), data.end(), 0);
 
 void write_blocking_spi() {
   spi_inst_t *spi_port;
-  // uint cs_pin; 
+  // uint cs_pin;
   size_t data_length;
 
   if (command_buffer[SPI_PORT] == 0) {
@@ -1035,7 +1037,8 @@ void scan_sonars() {
   last_scan += 100'000;
   for (int i = 0; i <= sonar_count; i++) {
     hc_sr04_descriptor *sonar = &the_hc_sr04s.sonars[i];
-    if (sonar->last_time_diff == (uint32_t)-1) { // Only when we have a fresh value send an update
+    if (sonar->last_time_diff ==
+        (uint32_t)-1) { // Only when we have a fresh value send an update
       continue;
     }
     if ((current_time - sonar->start_time) >
@@ -1231,7 +1234,7 @@ void VEML6040_Sensor::init_sequence() {
                               0b0,       // enable sensor
                           0b0            // reserved H byte
                       });
-  if(!ok) {
+  if (!ok) {
     this->stop = true;
   }
 }

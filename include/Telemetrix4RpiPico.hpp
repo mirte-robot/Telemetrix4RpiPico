@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
+#include <mutex>
 /************************** FORWARD REFERENCES ***********************
 We define all functions here as extern to provide allow
 forward referencing.
@@ -501,6 +502,7 @@ typedef struct {
   int next_encoder_index;
   repeating_timer_t trigger_timer;
   encoder_t encoders[MAX_ENCODERS];
+  std::mutex encoder_mutex;
 } encoder_data;
 encoder_data encoders;
 typedef struct {
