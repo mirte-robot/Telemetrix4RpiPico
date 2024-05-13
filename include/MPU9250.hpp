@@ -1177,7 +1177,7 @@ private:
     std::vector<uint8_t> data;
     data.resize(count, 0);
     read_i2c(this->bus, address, {subAddress}, count, data);
-    for (int i = 0; i < count && i < data.size(); i++) {
+    for (uint8_t i = 0; i < count && i < data.size(); i++) {
       dest[i] = data[i];
     }
 

@@ -268,7 +268,6 @@ void INA226_WE::writeRegister(uint8_t reg, uint16_t val) {
 }
 
 uint16_t INA226_WE::readRegister(uint8_t reg) {
-  uint8_t MSByte = 0, LSByte = 0;
   uint16_t regValue = 0;
   //   _wire->beginTransmission(i2cAddress);
   //   _wire->write(reg);

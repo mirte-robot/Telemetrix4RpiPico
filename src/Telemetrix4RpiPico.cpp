@@ -51,13 +51,13 @@ int sonar_count = -1;
 uint sonar_offset;
 
 // sonar device descriptors
-sonar_data the_hc_sr04s = {.next_sonar_index = 0};
+sonar_data the_hc_sr04s = {.next_sonar_index = 0, .trigger_timer = {}, .trigger_mask = 0, .sonars = {}};
 
 // number of active dht devices
 int dht_count = -1;
 
 // dht device descriptors
-dht_data the_dhts = {.next_dht_index = 0};
+dht_data the_dhts = {.next_dht_index = 0, .dhts = {}};
 
 // pio for neopixel values
 PIO np_pio = pio0;
@@ -442,8 +442,8 @@ void i2c_read() {
   // We have a separate buffer ot store the data read from the device
   // and combine that data back into the i2c report buffer.
   // This gets around casting.
-  uint8_t data_from_device[command_buffer[I2C_READ_LENGTH]];
-
+  // uint8_t data_from_device[command_buffer[I2C_READ_LENGTH]];
+  std::vector<uint8_t> data_from_device(command_buffer[I2C_READ_LENGTH], 0);
   uint8_t message_id = command_buffer[I2C_READ_MESSAGE_ID];
   // return value from write and read i2c sdk commands
   int i2c_sdk_call_return_value;
@@ -471,7 +471,7 @@ void i2c_read() {
 
   // now do the read request
   i2c_sdk_call_return_value = i2c_read_blocking(
-      i2c, (uint8_t)command_buffer[I2C_DEVICE_ADDRESS], data_from_device,
+      i2c, (uint8_t)command_buffer[I2C_DEVICE_ADDRESS], data_from_device.data(),
       (size_t)(command_buffer[I2C_READ_LENGTH]),
       (bool)command_buffer[I2C_READ_NO_STOP_FLAG]);
   if (i2c_sdk_call_return_value == PICO_ERROR_GENERIC) {
@@ -698,6 +698,7 @@ void scan_encoders() {
 }
 
 bool sonar_timer_callback(repeating_timer_t *rt) {
+  (void)rt;
   // every interrupt, trigger one sonar and increase counter for next round.
   // results in 10Hz per sonar, without crosstalk.
   static uint8_t sonar_counter = 0;
@@ -835,7 +836,10 @@ void read_blocking_spi() {
   spi_inst_t *spi_port;
   size_t data_length;
   uint8_t repeated_transmit_byte;
-  uint8_t data[command_buffer[SPI_READ_LEN]];
+  std::vector<uint8_t> data;
+  data.resize(command_buffer[SPI_READ_LEN]);
+std::fill(data.begin(), data.end(), 0);
+  // uint8_t data[command_buffer[SPI_READ_LEN]];
 
   if (command_buffer[SPI_PORT] == 0) {
     spi_port = spi0;
@@ -845,12 +849,12 @@ void read_blocking_spi() {
 
   data_length = command_buffer[SPI_READ_LEN];
   // memset(data, 0, data_length);
-  memset(data, 0, sizeof(data));
+  // memset(data, 0, sizeof(data));
 
   repeated_transmit_byte = command_buffer[SPI_REPEATED_DATA];
 
   // read data
-  spi_read_blocking(spi_port, repeated_transmit_byte, data, data_length);
+  spi_read_blocking(spi_port, repeated_transmit_byte, data.data(), data_length);
   sleep_ms(100);
 
   // build a report from the data returned
@@ -859,7 +863,7 @@ void read_blocking_spi() {
   spi_report_message[SPI_REPORT_ID] = SPI_REPORT;
   spi_report_message[SPI_REPORT_PORT] = command_buffer[SPI_PORT];
   spi_report_message[SPI_REPORT_NUMBER_OF_DATA_BYTES] = data_length;
-  for (int i = 0; i < data_length; i++) {
+  for (size_t i = 0; i < data_length; i++) {
     spi_report_message[SPI_DATA + i] = data[i];
   }
   serial_write((int *)spi_report_message, SPI_DATA + data_length);
@@ -867,7 +871,7 @@ void read_blocking_spi() {
 
 void write_blocking_spi() {
   spi_inst_t *spi_port;
-  uint cs_pin;
+  // uint cs_pin; 
   size_t data_length;
 
   if (command_buffer[SPI_PORT] == 0) {
@@ -1031,8 +1035,7 @@ void scan_sonars() {
   last_scan += 100'000;
   for (int i = 0; i <= sonar_count; i++) {
     hc_sr04_descriptor *sonar = &the_hc_sr04s.sonars[i];
-    if (sonar->last_time_diff ==
-        -1) { // Only when we have a fresh value send an update
+    if (sonar->last_time_diff == (uint32_t)-1) { // Only when we have a fresh value send an update
       continue;
     }
     if ((current_time - sonar->start_time) >
@@ -1228,6 +1231,9 @@ void VEML6040_Sensor::init_sequence() {
                               0b0,       // enable sensor
                           0b0            // reserved H byte
                       });
+  if(!ok) {
+    this->stop = true;
+  }
 }
 
 void VEML6040_Sensor::readSensor() {
@@ -1392,7 +1398,6 @@ void put_byte(uint8_t byte) {
 void module_new() {
   const MODULE_TYPES type = (MODULE_TYPES)command_buffer[2];
   const uint8_t module_num = command_buffer[1];
-  auto data_size = packet_size - 3;
   std::vector<uint8_t> data;
   data.insert(data.end(), &command_buffer[3], &command_buffer[packet_size]);
   // std::copy(command_buffer + 3, command_buffer + 3 + data_size,
@@ -1421,7 +1426,6 @@ void module_data() {
   if (module_num > modules.size()) {
     return;
   }
-  auto data_size = packet_size - 2;
   std::vector<uint8_t> data;
   data.insert(data.end(), &command_buffer[2], &command_buffer[packet_size]);
   modules[module_num]->writeModule(data);
@@ -1472,7 +1476,7 @@ void PCA9685_Module::updateOne(std::vector<uint8_t> &dataList, size_t i) {
   data[2] = dataList[2 + i * 5];
   data[3] = dataList[3 + i * 5];
   data[4] = dataList[4 + i * 5];
-  auto ok = write_i2c_t(this->i2c_port, this->addr, data);
+  write_i2c_t(this->i2c_port, this->addr, data);
 }
 
 void PCA9685_Module::writeModule(std::vector<uint8_t> &data) {
@@ -1482,7 +1486,7 @@ void PCA9685_Module::writeModule(std::vector<uint8_t> &data) {
   // 3+4 OFF
   // update real module
 
-  for (auto i = 0; i < data.size() / 5; i++) {
+  for (uint8_t i = 0; i < data.size() / 5; i++) {
     this->updateOne(data, i);
   }
 }
@@ -1501,7 +1505,7 @@ Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t> &data) {
   auto rxPin = data[1];
   auto txPin = data[2];
   auto servos = data[3];
-  if (data.size() != servos + 4) {
+  if (data.size() != (uint8_t)(servos + 4)) {
     return;
   }
   this->bus = new HiwonderBus();
@@ -1512,7 +1516,7 @@ Hiwonder_Servo::Hiwonder_Servo(std::vector<uint8_t> &data) {
     auto id = data[4 + i];
     auto servo = new HiwonderServo(this->bus, id);
     servo->initialize();
-    auto offset = servo->read_angle_offset();
+    // auto offset = servo->read_angle_offset();
     this->servos.push_back(servo);
     this->enabled_servos++;
   }
@@ -1559,7 +1563,7 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
     if (count == 1) {
       this->writeSingle(data, 0, true);
     } else {
-      if (data.size() != count * 5 + 2) {
+      if (data.size() != (uint8_t)(count * 5 + 2)) {
         return;
       }
       for (auto i = 0; i < count; i++) {
@@ -1868,7 +1872,7 @@ void check_uart_loopback() {
   // If we read back the same message as sent, then there is a loopback
   // and disable the uart for normal Telemetrix communication.
   while (uart_is_readable(UART_ID)) {
-    uint8_t ch = uart_getc(UART_ID);
+    (void)uart_getc(UART_ID);
     // empty the uart.
   }
   uint8_t test_message = 0; // send a null character, this shouldn't interfere
@@ -1977,7 +1981,7 @@ int main() {
   }
 
   // initialize the sonar structures
-  sonar_data the_hc_sr04s = {.next_sonar_index = 0, .trigger_mask = 0};
+  // sonar_data the_hc_sr04s = ;
   for (int i = 0; i < MAX_SONARS; i++) {
     the_hc_sr04s.sonars[i].trig_pin = the_hc_sr04s.sonars[i].echo_pin =
         (uint)-1;
@@ -2014,7 +2018,7 @@ int main() {
         check_mirte_master(); // Not needed anymore, as relay and transistors
                               // are broken
 #endif
-        if (watchdog_enable) {
+        if (watchdog_enabled) {
           check_wd_timeout();
         }
       }

@@ -15,8 +15,8 @@ bool HiwonderBus::write_no_retry(uint8_t cmd, const uint8_t *params,
 
   // prepare packet in a buffer
   int buflen = 6 + param_cnt;
-  uint8_t buf[buflen];
-  uint8_t ret[buflen];
+  std::vector<uint8_t> buf(buflen, 0);
+  std::vector<uint8_t> ret(buflen, 0);
   buf[0] = 0x55;
   buf[1] = 0x55;
   buf[2] = MYID;
@@ -43,7 +43,7 @@ bool HiwonderBus::write_no_retry(uint8_t cmd, const uint8_t *params,
   // send command packet
   uint32_t t0 = millis();
 
-  write(buf, buflen);
+  write(buf.data(), buflen);
   // expect to read back command by virtue of single-pin loop-back
   uint32_t tout = time(buflen + 4) + 4; // 2ms margin
   int got = 0;
