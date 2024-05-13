@@ -644,12 +644,16 @@ bool encoder_callback(repeating_timer_t *timer) {
 }
 
 bool create_encoder_timer() {
-  int hz = 2000;
+  int hz = 10000;
   /* blue encoder motor:
   - 110 rpm = ~2 rot/s
   - 540 steps/rot
   - >1000 steps/s
   - requires at least 1 scan per step
+
+  Mirte-master:
+  107 rpm, 1320 ticks/rot
+  -> ~1.8 rot/s * 1320 = 2354 ticks/s
 */
   if (!add_repeating_timer_us(-1000000 / hz, encoder_callback, NULL,
                               &encoders.trigger_timer)) {
