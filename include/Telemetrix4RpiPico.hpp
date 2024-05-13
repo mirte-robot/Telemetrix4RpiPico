@@ -23,11 +23,11 @@
 #include "pico/stdlib.h"
 #include "pico/unique_id.h"
 #include <array>
+#include <pico/sync.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
-#include <mutex>
 /************************** FORWARD REFERENCES ***********************
 We define all functions here as extern to provide allow
 forward referencing.
@@ -470,6 +470,7 @@ typedef struct sonar_data {
   repeating_timer_t trigger_timer;
   uint32_t trigger_mask;
   hc_sr04_descriptor sonars[MAX_SONARS];
+  mutex_t mutex;
 } sonar_data;
 
 // this structure describes a DHT type device
@@ -502,7 +503,7 @@ typedef struct {
   int next_encoder_index;
   repeating_timer_t trigger_timer;
   encoder_t encoders[MAX_ENCODERS];
-  std::mutex encoder_mutex;
+  mutex_t mutex;
 } encoder_data;
 encoder_data encoders;
 typedef struct {

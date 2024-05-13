@@ -615,7 +615,12 @@ void init_single_encoder(int A, encoder_t *enc) {
 }
 bool encoder_callback(repeating_timer_t *timer) {
   (void)timer;
+  if (!mutex_try_enter(&encoders.mutex, NULL)) {
+    return true;
+  }
+
   if (encoders.next_encoder_index == 0) {
+    mutex_exit(&encoders.mutex);
     return true;
   }
   for (int i = 0; i < encoders.next_encoder_index; i++) {
@@ -642,6 +647,7 @@ bool encoder_callback(repeating_timer_t *timer) {
       }
     }
   }
+  mutex_exit(&encoders.mutex);
   return true;
 }
 
@@ -666,10 +672,12 @@ bool create_encoder_timer() {
 }
 
 void encoder_new() {
+
   ENCODER_TYPES type = (ENCODER_TYPES)command_buffer[ENCODER_TYPE];
   uint pin_a = command_buffer[ENCODER_PIN_A];
   uint pin_b = command_buffer[ENCODER_PIN_B]; // both cases will have a pin B
   if (encoders.next_encoder_index == 0) {
+    mutex_init(&encoders.mutex);
     bool timer = create_encoder_timer();
     if (!timer) {
       return;
@@ -677,6 +685,8 @@ void encoder_new() {
   } else if (encoders.next_encoder_index > MAX_ENCODERS) {
     return;
   }
+  mutex_enter_blocking(&encoders.mutex);
+
   encoder_t *new_encoder = &encoders.encoders[encoders.next_encoder_index];
   if (type == SINGLE) {
     init_single_encoder(pin_a, new_encoder);
@@ -684,10 +694,18 @@ void encoder_new() {
     init_quadrature_encoder(pin_a, pin_b, new_encoder);
   }
   encoders.next_encoder_index++;
+  mutex_exit(&encoders.mutex);
 }
+
 int encoder_report_message[] = {3, ENCODER_REPORT, 0, 0};
 
 void scan_encoders() {
+  if (encoders.next_encoder_index < 1) {
+    return;
+  }
+  if (!mutex_enter_timeout_us(&encoders.mutex, 10)) {
+    return;
+  }
   for (int i = 0; i < encoders.next_encoder_index; i++) {
     encoder_t *enc = &encoders.encoders[i];
     if (enc->step != 0) {
@@ -697,6 +715,7 @@ void scan_encoders() {
       serial_write(encoder_report_message, 4);
     }
   }
+  mutex_exit(&encoders.mutex);
 }
 
 bool sonar_timer_callback(repeating_timer_t *rt) {
@@ -732,7 +751,10 @@ void sonar_new() {
     // When already created one timer, remove it before recreating it at a
     // higher rate.
     cancel_repeating_timer(&the_hc_sr04s.trigger_timer);
+  } else {
+    mutex_init(&the_hc_sr04s.mutex);
   }
+  mutex_enter_blocking(&the_hc_sr04s.mutex);
   sonar_count++;
 
   the_hc_sr04s.sonars[sonar_count].trig_pin = trig_pin;
@@ -745,6 +767,8 @@ void sonar_new() {
   gpio_set_dir(echo_pin, GPIO_IN);
   gpio_set_irq_enabled_with_callback(
       echo_pin, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &sonar_callback);
+
+  mutex_exit(&the_hc_sr04s.mutex);
 
   // Add or update timer when adding a new sonar, to trigger at 10Hz/sonar
   int hz = 10 * (sonar_count + 1); // 10 hz per sonar
@@ -1034,6 +1058,14 @@ void scan_sonars() {
   if (current_time - last_scan < 100'000) {
     return; // Only update at 10Hz.
   }
+  if (sonar_count <
+      0) { // mutex not initialized and don't need to scan the empty list
+    return;
+  }
+  if (!mutex_enter_timeout_us(&the_hc_sr04s.mutex, 10)) {
+    // also don't update the last_scan variable
+    return;
+  }
   last_scan += 100'000;
   for (int i = 0; i <= sonar_count; i++) {
     hc_sr04_descriptor *sonar = &the_hc_sr04s.sonars[i];
@@ -1069,6 +1101,7 @@ void scan_sonars() {
       sonar->last_time_diff = 0;
     }
   }
+  mutex_exit(&the_hc_sr04s.mutex);
 }
 bool watchdog_enabled = false;
 uint32_t last_ping = 0;

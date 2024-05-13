@@ -48,7 +48,8 @@ target_link_libraries(
   hardware_pio
   hardware_clocks
   hardware_dma
-  hardware_spi)
+  hardware_spi
+  pico_sync)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_custom_target(
