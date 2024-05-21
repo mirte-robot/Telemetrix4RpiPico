@@ -1311,7 +1311,7 @@ void VL53L0X_Sensor::readSensor() {
 
 MPU9250_Sensor::MPU9250_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
   this->sensor.bus = settings[0];
-  auto i = this->sensor.setup(0x68);
+  auto i = this->sensor.setup(0x68, MPU9250Setting(), settings[0]);
   if (!i) {
     this->enabled = false;
   }
