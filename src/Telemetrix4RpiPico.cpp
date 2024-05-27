@@ -62,28 +62,28 @@ int dht_count = -1;
 // dht device descriptors
 dht_data the_dhts = {.next_dht_index = 0, .dhts = {}};
 
-// pio for neopixel values
-PIO np_pio = pio0;
-uint np_sm = 0;
+// // pio for neopixel values
+// PIO np_pio = pio0;
+// uint np_sm = 0;
 
-// neopixel storage for up to 150 pixel string
-// Each entry contains an RGG array.
+// // neopixel storage for up to 150 pixel string
+// // Each entry contains an RGG array.
 
-uint8_t pixel_buffer[MAXIMUM_NUM_NEOPIXELS][3];
+// uint8_t pixel_buffer[MAXIMUM_NUM_NEOPIXELS][3];
 
-uint actual_number_of_pixels;
+// uint actual_number_of_pixels;
 
 // scan delay
 uint32_t scan_delay = 100000;
 
-// TODO: remove this slow mess, use latest example with dma
-static inline void put_pixel(uint32_t pixel_grb) {
-  pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
-}
+// // TODO: remove this slow mess, use latest example with dma
+// static inline void put_pixel(uint32_t pixel_grb) {
+//   pio_sm_put_blocking(pio0, 0, pixel_grb << 8u);
+// }
 
-static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
-  return ((uint32_t)(r) << 8) | ((uint32_t)(g) << 16) | (uint32_t)(b);
-}
+// static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
+//   return ((uint32_t)(r) << 8) | ((uint32_t)(g) << 16) | (uint32_t)(b);
+// }
 
 // PWM values
 uint32_t top;
@@ -547,28 +547,51 @@ void i2c_write() {
   serial_write(i2c_report_message, I2C_ERROR_REPORT_NUM_OF_BYTE_TO_SEND);
 }
 TMX_NeoPixel np;
+bool np_initialized = false;
 void init_neo_pixels() {
   np.init(command_buffer[NP_NUMBER_OF_PIXELS], command_buffer[NP_PIN_NUMBER],
           command_buffer[NP_RED_FILL], command_buffer[NP_GREEN_FILL],
           command_buffer[NP_BLUE_FILL]);
+  np_initialized = true;
 }
 
 void set_neo_pixel() {
+  if (!np_initialized) {
+    return;
+  }
   np.setPixelColor(command_buffer[NP_PIXEL_NUMBER], command_buffer[NP_SET_RED],
                    command_buffer[NP_SET_GREEN], command_buffer[NP_SET_BLUE],
                    command_buffer[NP_SET_AUTO_SHOW]);
 }
 
-void show_neo_pixels() { np.show(); }
+void show_neo_pixels() {
+  if (!np_initialized) {
+    return;
+  }
+  np.show();
+}
 
 void clear_all_neo_pixels() {
+  if (!np_initialized) {
+    return;
+  }
   // set all the neopixels in the buffer to all zeroes
   np.clear();
 }
 
 void fill_neo_pixels() {
+  if (!np_initialized) {
+    return;
+  }
   np.fill(command_buffer[NP_FILL_RED], command_buffer[NP_FILL_GREEN],
           command_buffer[NP_FILL_BLUE], command_buffer[NP_FILL_AUTO_SHOW]);
+}
+
+void reset_neo_pixels() {
+  if (!np_initialized) {
+    return;
+  }
+  np.clear();
 }
 
 void sonar_callback(uint gpio, uint32_t events) {
@@ -1141,6 +1164,7 @@ void check_wd_timeout() {
     for (auto &module : modules) {
       module->resetModule();
     }
+    reset_neo_pixels();
   }
 }
 
