@@ -8,6 +8,7 @@
 #include "HiwonderServo.hpp"
 #include "INA226v2.hpp"
 #include "MPU9250.hpp"
+#include "Modules.hpp"
 #include "Telemetrix4RpiPico.pio.h"
 #include "VL53L0.hpp"
 #include "hardware/adc.h"
@@ -22,6 +23,7 @@
 #include "neopixel.hpp"
 #include "pico/stdlib.h"
 #include "pico/unique_id.h"
+#include "tmx_ssd1306.hpp"
 #include <array>
 #include <pico/sync.h>
 #include <stdio.h>
@@ -623,26 +625,6 @@ void readSensors();
 void serial_write(std::vector<uint8_t> data);
 std::vector<Sensor *> sensors;
 void reportBytes(std::vector<uint8_t>);
-
-enum MODULE_TYPES : uint8_t { // Max 255 modules, but will always fit in a
-                              // single byte!
-  PCA9685 = 0,                // 16x 12bit PWM
-  HIWONDER_SERVO = 1,
-  SHUTDOWN_RELAY = 2,
-  MAX_MODULES
-};
-
-class Module {
-public:
-  virtual void readModule() = 0;
-  virtual void writeModule(std::vector<uint8_t> &data) = 0;
-  virtual void resetModule() = 0;
-  bool stop = false;
-  void publishData(std::vector<uint8_t> &data);
-
-  int num = 0;
-  MODULE_TYPES type = MODULE_TYPES::MAX_MODULES;
-};
 
 class PCA9685_Module : public Module {
 public:

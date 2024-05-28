@@ -1473,6 +1473,10 @@ void module_new() {
   } else if (type == MODULE_TYPES::SHUTDOWN_RELAY) {
     return; // not implemented
     // module = new Shutdown_Relay(data);
+  } else if (type == MODULE_TYPES::TMX_SSD1306) {
+    module = new TmxSSD1306(data);
+  } else {
+    return;
   }
 
   module->type = type;

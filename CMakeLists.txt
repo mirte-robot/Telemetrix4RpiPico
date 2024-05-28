@@ -18,7 +18,8 @@ add_executable(
   src/HX711.cpp
   src/neopixel.cpp
   src/INA226v2.cpp
-  src/HiwonderServo.cpp)
+  src/HiwonderServo.cpp
+  src/tmx_ssd1306.cpp)
 find_package(Git REQUIRED)
 execute_process(
   COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
@@ -37,6 +38,8 @@ pico_generate_pio_header(Telemetrix4RpiPico
 pico_enable_stdio_usb(Telemetrix4RpiPico 1)
 pico_enable_stdio_uart(Telemetrix4RpiPico 0)
 pico_add_extra_outputs(Telemetrix4RpiPico)
+add_subdirectory(pico-ssd1306)
+
 target_link_libraries(
   Telemetrix4RpiPico
   pico_stdlib
@@ -49,7 +52,8 @@ target_link_libraries(
   hardware_clocks
   hardware_dma
   hardware_spi
-  pico_sync)
+  pico_sync
+  pico_ssd1306)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_custom_target(
