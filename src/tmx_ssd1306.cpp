@@ -21,7 +21,7 @@ void TmxSSD1306::writeModule(std::vector<uint8_t> &data) {
     // 16 bytes with data
     uint8_t index = data[1];
     for (int i = 0; i < 16; i++) {
-      this->frameBuffer.get()[index + i] = data[2 + i];
+      this->frameBuffer.get()[index*16 + i] = data[2 + i];
     }
   } else if (data[0] == MessageType::BINARY_DONE) {
     display->sendBuffer();
