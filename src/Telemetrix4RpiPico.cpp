@@ -1727,7 +1727,7 @@ void Hiwonder_Servo::readModule() {
   // only update position when changed
   for (auto i = 0; auto servo : this->servos) {
     if (servo->disabled) { // skip disabled servos, they are very slow
-    i++;
+      i++;
       continue;
     }
     auto pos = servo->pos_read();
