@@ -1722,11 +1722,12 @@ void Hiwonder_Servo::readModule() {
   }
   // read angle, temp?
   std::vector<uint8_t> data;
-  data.reserve(this->servos.size() * 5 + 1);
+  data.reserve(this->servos.size() * 3 + 1);
   data.push_back(0); // message type servo angles
   // only update position when changed
   for (auto i = 0; auto servo : this->servos) {
     if (servo->disabled) { // skip disabled servos, they are very slow
+    i++;
       continue;
     }
     auto pos = servo->pos_read();

@@ -19,6 +19,8 @@ jobs:
         container: ghcr.io/arendjan/pico_docker_image:main
         steps:
           - uses: actions/checkout@main
+            with:
+              submodules: true
           - name: build
             run: |
               chmod +x build.sh

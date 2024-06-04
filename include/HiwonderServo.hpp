@@ -43,12 +43,12 @@ private:
   typeof(uart1) uart_id = uart1;
 
 public:
-  bool _debug = false;
-  bool _deepDebug = false;
+  // bool _debug = false;
+  // bool _deepDebug = false;
   HiwonderBus() {}
 
   // debug enables/disables debug printf's for this servo
-  void debug(bool on) { _debug = on; }
+  // void debug(bool on) { _debug = on; }
 
   void begin(typeof(uart1) port, int rXpin, int tXpin) {
     const auto BAUD_RATE = 115200;
@@ -94,7 +94,7 @@ public:
   int read() { return uart_getc(uart_id); }
   void write(const uint8_t *buf, int buflen) {
 
-    sleep_us(10);
+    // sleep_us(10);
     for (int i = 0; i < buflen; i++) {
       uart_putc_raw(uart_id, buf[i]);
       uart_tx_wait_blocking(uart_id);
@@ -304,7 +304,7 @@ public:
       maxCentDegrees = ((max_angle_in_Ticks)*24) + staticOffset;
       setLimitsTicks(min_angle_in_Ticks, max_angle_in_Ticks);
       move_time(newAngle, 0);
-      sleep_ms(500);
+      // sleep_ms(500);
       return false;
     } else {
       // Serial.println("\nBounds of servo ID " + String(_id) + " ok!");
@@ -390,9 +390,9 @@ public:
     do {
       if (!_bus->read(HiwonderCommands::ANGLE_LIMIT_READ, params, 4, _id)) {
         commandOK = false;
-        if (_bus->_debug) {
-          // Serial.println("ERROR reading limits #" + String(_id));
-        }
+        // if (_bus->_debug) {
+        //   // Serial.println("ERROR reading limits #" + String(_id));
+        // }
       } else {
         commandOK = true;
         int lowicks = (params[0] | ((uint16_t)params[1] << 8));
