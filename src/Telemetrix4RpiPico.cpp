@@ -1806,7 +1806,7 @@ void enable_watchdog() {
 //   gpio_put(LED_PIN, this->enabled);
 // }
 
-void Module::publishData(std::vector<uint8_t> &data) {
+void Module::publishData(const std::vector<uint8_t> &data) {
   std::vector<uint8_t> out = {
       0,                  // write len
       MODULE_REPORT,      // write type
@@ -2018,7 +2018,6 @@ int get_byte() {
 int main() {
   // gpio_init(14);
   // gpio_set_dir(14, GPIO_OUT);
-
   // gpio_put(14, 0);
   stdio_init_all();
   stdio_set_translate_crlf(&stdio_usb, false);

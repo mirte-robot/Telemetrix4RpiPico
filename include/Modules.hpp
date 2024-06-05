@@ -17,7 +17,7 @@ public:
   virtual void writeModule(std::vector<uint8_t> &data) = 0;
   virtual void resetModule() = 0;
   bool stop = false;
-  void publishData(std::vector<uint8_t> &data);
+  void publishData(const std::vector<uint8_t> &data);
 
   int num = 0;
   MODULE_TYPES type = MODULE_TYPES::MAX_MODULES;
