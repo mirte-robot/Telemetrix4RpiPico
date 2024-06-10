@@ -26,7 +26,7 @@ void TmxSSD1306::writeModule(std::vector<uint8_t> &data) {
     display->sendBuffer();
     auto len = this->text_buff.length();
     this->text_buff.clear();
-    this->publishData({MessageType::TEXT_DONE, (uint8_t)len, this->display->x, this->display->enabled});
+    this->publishData({MessageType::TEXT_DONE, (uint8_t)len, (uint8_t)this->display->x, this->display->enabled});
   } else if (data[0] == MessageType::BINARY) {
     // byte1: index
     // 16 bytes with data
@@ -47,7 +47,7 @@ TmxSSD1306::TmxSSD1306(std::vector<uint8_t> &data) {
 
   this->display =
       new pico_ssd1306::SSD1306(i2c_port, 0x3C, pico_ssd1306::Size::W128xH64);
-      
+
   this->display->setBuffer(this->frameBuffer.get());
 
   this->text_buff.reserve(150);

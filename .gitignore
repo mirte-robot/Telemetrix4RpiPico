@@ -7,3 +7,4 @@ build/
 !.vscode/settings.json
 test/
 build2/
+build_rel/
