@@ -19,6 +19,7 @@ add_executable(
   src/neopixel.cpp
   src/INA226v2.cpp
   src/HiwonderServo.cpp
+  src/HMC5883L.cpp
   src/tmx_ssd1306.cpp)
 find_package(Git REQUIRED)
 execute_process(

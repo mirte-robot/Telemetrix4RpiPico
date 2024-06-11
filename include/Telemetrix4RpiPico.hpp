@@ -4,6 +4,7 @@
 
 #ifndef TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 #define TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
+#include "HMC5883L.hpp"
 #include "HX711.hpp"
 #include "HiwonderServo.hpp"
 #include "INA226v2.hpp"
@@ -530,6 +531,7 @@ enum SENSOR_TYPES : uint8_t { // Max 255 sensors, but will always fit in a
   VEML6040 = 4, // Color sensor
   ADXL345 = 5,  // 3 axis accel
   INA226a = 6,
+  HMC5883l = 7,
   MAX_SENSORS
 };
 class Sensor {
@@ -619,8 +621,18 @@ private:
   INA226_WE *sensor = nullptr;
 };
 
+class HMC5883L_Sensor : public Sensor {
+public:
+  HMC5883L_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  void resetSensor(){};
+
+private:
+  HMC5883L *sensor = nullptr;
+};
+
 void sensor_new();
-void addSensor(uint8_t data[], size_t len);
+// void addSensor(uint8_t data[], size_t len);
 void readSensors();
 void serial_write(std::vector<uint8_t> data);
 std::vector<Sensor *> sensors;
