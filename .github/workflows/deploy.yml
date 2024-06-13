@@ -74,7 +74,7 @@ jobs:
             - name: List artifact
               run: |
                 ls ${{ github.workspace }}
-                mkdir ${{ github.workspace }}/upload/mirte
+                mkdir -p ${{ github.workspace }}/upload/mirte
                 ls ${{ github.workspace }}/upload
                 tree ${{ github.workspace }}/upload
                 # for every file ending in .img.xz, remove last part of the path
