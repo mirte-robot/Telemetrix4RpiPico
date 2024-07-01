@@ -49,6 +49,8 @@ TmxSSD1306::TmxSSD1306(std::vector<uint8_t> &data) {
   this->display =
       new pico_ssd1306::SSD1306(i2c_port, 0x3C, pico_ssd1306::Size::W128xH64);
 
+  this->display->setOrientation(0);
+
   this->display->setBuffer(this->frameBuffer.get());
 
   this->text_buff.reserve(150);
