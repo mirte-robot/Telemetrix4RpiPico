@@ -4,13 +4,12 @@ void TmxSSD1306::readModule() {
   // This is a dummy function, as the SSD1306 does not have any data to read
 }
 void TmxSSD1306::updModule() {
-  if(this->isWriting) {
+  if (this->isWriting) {
     // update the oled a line every loop
     this->isWriting = this->display->postWrite();
-    if(!this->isWriting) { // done writing
-    this->publishData({this->currentMessage, (uint8_t)this->currentLen,
-                       (uint8_t)this->display->x, this->display->enabled});
-      
+    if (!this->isWriting) { // done writing
+      this->publishData({this->currentMessage, (uint8_t)this->currentLen,
+                         (uint8_t)this->display->x, this->display->enabled});
     }
   }
 }
@@ -35,7 +34,8 @@ void TmxSSD1306::writeModule(std::vector<uint8_t> &data) {
   } else if (data[0] == MessageType::TEXT_DONE) {
     this->frameBuffer.clear();
     pico_ssd1306::drawText(display, font_5x8, this->text_buff.c_str(), 0, 0);
-    display->sendBuffer(); // 'non'blocking, real data transfer in the postWrite call.
+    display->sendBuffer(); // 'non'blocking, real data transfer in the postWrite
+                           // call.
     auto len = this->text_buff.length();
     this->text_buff.clear();
     this->currentLen = len;
