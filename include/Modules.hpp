@@ -21,4 +21,5 @@ public:
 
   int num = 0;
   MODULE_TYPES type = MODULE_TYPES::MAX_MODULES;
+  virtual void updModule() {}; // called at every loop, only used when needed (Oled update)
 };

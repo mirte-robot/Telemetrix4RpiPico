@@ -1,6 +1,18 @@
 #include "tmx_ssd1306.hpp"
+
 void TmxSSD1306::readModule() {
   // This is a dummy function, as the SSD1306 does not have any data to read
+}
+void TmxSSD1306::updModule() {
+  if(this->isWriting) {
+    // update the oled a line every loop
+    this->isWriting = this->display->postWrite();
+    if(!this->isWriting) { // done writing
+    this->publishData({this->currentMessage, (uint8_t)this->currentLen,
+                       (uint8_t)this->display->x, this->display->enabled});
+      
+    }
+  }
 }
 
 void TmxSSD1306::writeModule(std::vector<uint8_t> &data) {
@@ -23,11 +35,12 @@ void TmxSSD1306::writeModule(std::vector<uint8_t> &data) {
   } else if (data[0] == MessageType::TEXT_DONE) {
     this->frameBuffer.clear();
     pico_ssd1306::drawText(display, font_5x8, this->text_buff.c_str(), 0, 0);
-    display->sendBuffer();
+    display->sendBuffer(); // 'non'blocking, real data transfer in the postWrite call.
     auto len = this->text_buff.length();
     this->text_buff.clear();
-    this->publishData({MessageType::TEXT_DONE, (uint8_t)len,
-                       (uint8_t)this->display->x, this->display->enabled});
+    this->currentLen = len;
+    this->currentMessage = MessageType::TEXT_DONE;
+    this->isWriting = true;
   } else if (data[0] == MessageType::BINARY) {
     // byte1: index
     // 16 bytes with data
@@ -37,7 +50,9 @@ void TmxSSD1306::writeModule(std::vector<uint8_t> &data) {
     }
   } else if (data[0] == MessageType::BINARY_DONE) {
     display->sendBuffer();
-    this->publishData({MessageType::BINARY_DONE, 1});
+    this->isWriting = true;
+    this->currentMessage = MessageType::BINARY_DONE;
+    this->currentLen = 1;
   }
 }
 TmxSSD1306::TmxSSD1306(std::vector<uint8_t> &data) {
@@ -48,7 +63,7 @@ TmxSSD1306::TmxSSD1306(std::vector<uint8_t> &data) {
 
   this->display =
       new pico_ssd1306::SSD1306(i2c_port, 0x3C, pico_ssd1306::Size::W128xH64);
-
+  this->display->setPostWrite(true);
   this->display->setOrientation(0);
 
   this->display->setBuffer(this->frameBuffer.get());

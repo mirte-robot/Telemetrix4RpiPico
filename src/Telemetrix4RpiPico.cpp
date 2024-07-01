@@ -2130,6 +2130,9 @@ int main() {
           check_wd_timeout();
         }
       }
+      for(auto module : modules) {
+        module->updModule();
+      }
     }
   }
 }
