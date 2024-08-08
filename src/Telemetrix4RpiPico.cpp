@@ -595,6 +595,7 @@ void reset_neo_pixels() {
 }
 
 void sonar_callback(uint gpio, uint32_t events) {
+  // MAYBE: add mutex to prevent errs
   if (events & GPIO_IRQ_EDGE_FALL) {
     // stop time
     for (int i = 0; i <= sonar_count; i++) {
