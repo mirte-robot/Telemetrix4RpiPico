@@ -50,6 +50,32 @@ Receive:
 [PONG_ID = 32, COUNTER_FROM_COMPUTER, CONST_boot_id]
 ```
 
+### Get saved id
+This id is stored on the MCU to later identify it when multiple microcontrollers are in use
+Send:
+```py
+[GET_ID = 35 ]
+```
+
+Receive:
+```py
+[GET_ID_REPORT = 35, id ]
+```
+
+### Save id
+Save an id. This will be stored and kept between reboots
+
+Send:
+```py
+[SET_ID = 36, id]
+```
+
+Receive:
+```py
+[SET_ID_REPORT = 36, id]
+```
+
+
 ### I2C
 
 #### I2C start

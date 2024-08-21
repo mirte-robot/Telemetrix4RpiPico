@@ -164,6 +164,8 @@ extern volatile bool uart_enabled;
 #define SET_SCAN_DELAY 29
 #define ENCODER_NEW 30
 const int SENSOR_NEW = 31;
+const int GET_ID = 35;
+const int SET_ID = 36;
 /*****************************************************
  *                  MESSAGE OFFSETS
  ***************************************************/
@@ -694,5 +696,12 @@ void module_new();
 void module_data();
 
 const auto WATCHDOG_TIME = 5'000; // 5s timeout
+
+
+void get_id();
+void set_id();
+
+
+
 
 #endif // TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H

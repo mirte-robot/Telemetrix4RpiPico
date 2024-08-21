@@ -53,6 +53,7 @@ target_link_libraries(
   hardware_clocks
   hardware_dma
   hardware_spi
+  hardware_flash
   pico_sync
   pico_ssd1306)
 

@@ -174,7 +174,9 @@ command_descriptor command_table[] = {{&serial_loopback},
                                       {&sensor_new},
                                       {&ping},
                                       {&module_new},
-                                      {&module_data}};
+                                      {&module_data},
+                                      {&get_id},
+                                      {&set_id}};
 
 /***************************************************************************
  *                   DEBUGGING FUNCTIONS
@@ -1955,6 +1957,42 @@ void read_dht(uint dht_pin) {
   dht_report_message[DHT_TEMPERATURE_WHOLE_VALUE] = temp_int_part;
   dht_report_message[DHT_TEMPERATURE_FRAC_VALUE] = temp_dec_part;
   serial_write(dht_report_message, 7);
+}
+
+#include "hardware/flash.h"
+
+#define FLASH_TARGET_OFFSET (256 * 1024)
+
+const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
+
+void get_id() {
+  int id[] = {2, GET_ID, 0};
+  id[2] = (uint8_t)(flash_target_contents[0]); // get the id from the flash, just the first byte
+  serial_write(id, 3);
+}
+
+void set_id() {
+  // msg format: 2, SET_ID, new_id
+  uint8_t new_id = command_buffer[1]; 
+    int id_msg[] = {2, SET_ID, new_id}; 
+  if(new_id == flash_target_contents[0]) { // no need to write anything to flash 
+    serial_write(id_msg, 3);
+    
+    return;
+  } 
+  uint8_t new_id_array[FLASH_PAGE_SIZE] = {0};
+  new_id_array[0] = new_id;
+  uint32_t ints = save_and_disable_interrupts();
+
+    static_assert(FLASH_PAGE_SIZE == 256);
+
+  flash_range_erase(FLASH_TARGET_OFFSET, FLASH_SECTOR_SIZE); // required to erase before writing
+
+  
+  flash_range_program(FLASH_TARGET_OFFSET, new_id_array, FLASH_PAGE_SIZE);
+  restore_interrupts (ints);
+
+  serial_write(id_msg, 3);
 }
 
 /*************************************************
