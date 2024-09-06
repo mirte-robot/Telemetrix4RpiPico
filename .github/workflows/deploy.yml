@@ -31,7 +31,8 @@ jobs:
               cp ./build2/Telemetrix4RpiPico.elf ./
           - name: install nodejs
             run: |
-                apt install curl unzip
+                apt update
+                apt install curl unzip -y
                 curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
                 chmod +x nodesource_setup.sh
                 ./nodesource_setup.sh
