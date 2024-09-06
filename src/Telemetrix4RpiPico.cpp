@@ -228,33 +228,33 @@ void led_debug(int blinks, uint delay) {
  */
 void set_pin_mode() {
   uint pin;
-  uint mode;
+  PIN_MODES mode;
   pin = command_buffer[SET_PIN_MODE_GPIO_PIN];
-  mode = command_buffer[SET_PIN_MODE_MODE_TYPE];
+  mode = (PIN_MODES)command_buffer[SET_PIN_MODE_MODE_TYPE];
 
   switch (mode) {
-  case DIGITAL_INPUT:
-  case DIGITAL_INPUT_PULL_UP:
-  case DIGITAL_INPUT_PULL_DOWN:
+  case PIN_MODES::INPUT:
+  case PIN_MODES::INPUT_PULL_UP:
+  case PIN_MODES::INPUT_PULL_DOWN:
     the_digital_pins[pin].pin_mode = mode;
     the_digital_pins[pin].reporting_enabled =
         command_buffer[SET_PIN_MODE_DIGITAL_IN_REPORTING_STATE];
     the_digital_pins[pin].last_value = 0xFF;
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_IN);
-    if (mode == DIGITAL_INPUT_PULL_UP) {
+    if (mode == INPUT_PULL_UP) {
       gpio_pull_up(pin);
     }
-    if (mode == DIGITAL_INPUT_PULL_DOWN) {
+    if (mode == INPUT_PULL_DOWN) {
       gpio_pull_down(pin);
     }
     break;
-  case DIGITAL_OUTPUT:
+  case PIN_MODES::OUTPUT:
     the_digital_pins[pin].pin_mode = mode;
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_OUT);
     break;
-  case PWM_OUTPUT: {
+  case PIN_MODES::PWM: {
     /* Here we will set the operating frequency to be 50 hz to
        simplify support PWM as well as servo support.
     */
@@ -280,7 +280,7 @@ void set_pin_mode() {
     gpio_set_function(pin, GPIO_FUNC_PWM);
     break;
   }
-  case ANALOG_INPUT:
+  case PIN_MODES::ANALOG_INPUT:
     // if the temp sensor was selected, then turn it on
     if (pin == ADC_TEMPERATURE_REGISTER) {
       adc_set_temp_sensor_enabled(true);
@@ -956,11 +956,31 @@ void set_format_spi() {
 void reset_data() {}
 
 /***************** Currently Unused ***************************/
-void servo_attach() {}
+void servo_attach() {
 
-void servo_write() {}
+  auto pin = command_buffer[1];
+  // auto min_pulse = command_buffer[
+  command_buffer[1] = pin;
+  command_buffer[2] = PIN_MODES::PWM;
+  set_pin_mode();
+}
 
-void servo_detach() {}
+void servo_write() {
+  // get microticks value    
+  const uint32_t f_hz = 50; // frequency in hz.
+
+  auto pin = command_buffer[1];
+  uint16_t ticks_ms = (command_buffer[2] << 8) +
+                   command_buffer[3];
+   uint32_t   top = 1'000'000UL / f_hz - 1; // calculate the TOP value
+
+  uint16_t value = (ticks_ms * top) / 20'000UL;
+  pwm_set_gpio_level(pin, value);
+}
+
+void servo_detach() {
+  // TODO: implement
+}
 
 /******************************************************
  *             INTERNALLY USED FUNCTIONS
@@ -1030,9 +1050,9 @@ void scan_digital_inputs() {
   // index 3 = value
 
   for (int i = 0; i < MAX_DIGITAL_PINS_SUPPORTED; i++) {
-    if (the_digital_pins[i].pin_mode == DIGITAL_INPUT ||
-        the_digital_pins[i].pin_mode == DIGITAL_INPUT_PULL_UP ||
-        the_digital_pins[i].pin_mode == DIGITAL_INPUT_PULL_DOWN) {
+    if (the_digital_pins[i].pin_mode == PIN_MODES::INPUT ||
+        the_digital_pins[i].pin_mode == PIN_MODES::INPUT_PULL_UP ||
+        the_digital_pins[i].pin_mode == PIN_MODES::INPUT_PULL_DOWN) {
       if (the_digital_pins[i].reporting_enabled) {
         // if the value changed since last read
         value = gpio_get(the_digital_pins[i].pin_number);

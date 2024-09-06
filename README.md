@@ -114,7 +114,7 @@ Send
 ## Sensors
 
 ### Sonar
-The sonars(hc-sr04) are time-triggered round-robin at a rate of 10Hz to not interfere with eachother. 10Hz per sonar, 3 sonars, timer at 30Hz. The sonar system uses a mutex to make sure writing of a new reading will not mess up reading from it. This might lead to missing sonar readings/messages.
+The sonars(hc-sr04) are time-triggered round-robin at a rate of 10Hz to not interfere with eachother. Example: 10Hz per sonar, 3 sonars, timer at 30Hz. The sonar system uses a mutex to make sure writing of a new reading will not mess up reading from it. This might lead to missing sonar readings/messages.
 
 Max distance is 4m. Distance is reported in cm, in 2 bytes: ```distance_m = int(distance/100); distance_cm = distance%100```
 
@@ -128,7 +128,7 @@ Add sonar:
 
 Receive:
 ```py
-[trigger_pin, distance_m, distance_cm]
+[SONAR_REPORT = 11, trigger_pin, distance_m, distance_cm]
 ```
 
 ### Encoders
@@ -156,7 +156,7 @@ Differential is ```uint16_t```, with ```diff_high = diff>>8``` and ```diff_low =
 
 Set:
 ```py
-[SET_PIN_MODE = 1, adc_pin, ANALOG_IN = 5, diff_high, diff_low ]
+[SET_PIN_MODE = 1, adc_pin, ANALOG_IN = 5, diff_high, diff_low, report_enable ]
 ```
 
 Receive:
@@ -223,6 +223,7 @@ Update:
 ```
 
 ### PWM output / Servo
+TODO: servo is split up, but using pwm output
 The PWM mode can be used for servos, as the PWM frequency is set to 50Hz. The value must be in range ```[0, 20000]```. ```value_high = value>>8```, ```value_low = value&0xFF```.
 
 Setup:

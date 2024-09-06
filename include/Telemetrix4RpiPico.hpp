@@ -131,41 +131,82 @@ extern volatile bool uart_enabled;
 // Commands -received by this sketch
 // Add commands retaining the sequential numbering.
 // The order of commands here must be maintained in the command_table below.
-#define SERIAL_LOOP_BACK 0
-#define SET_PIN_MODE 1
-#define DIGITAL_WRITE 2
-#define PWM_WRITE 3
-#define MODIFY_REPORTING                                                       \
-  4 // mode(all, analog, or digital), pin, enable or disable
-#define GET_FIRMWARE_VERSION 5
-#define GET_PICO_UNIQUE_ID 6
-#define SERVO_ATTACH 7 // unused
-#define SERVO_WRITE 8  // unused
-#define SERVO_DETACH 9 // unused
-#define I2C_BEGIN 10
-#define I2C_READ 11
-#define I2C_WRITE 12
-#define SONAR_NEW 13
-#define DHT_NEW 14
-#define STOP_ALL_REPORTS 15
-#define ENABLE_ALL_REPORTS 16
-#define RESET_DATA 17
-#define RESET_BOARD 18
-#define INITIALIZE_NEO_PIXELS 19
-#define SHOW_NEO_PIXELS 20
-#define SET_NEO_PIXEL 21
-#define CLEAR_ALL_NEO_PIXELS 22
-#define FILL_NEO_PIXELS 23
-#define SPI_INIT 24
-#define SPI_WRITE_BLOCKING 25
-#define SPI_READ_BLOCKING 26
-#define SPI_SET_FORMAT 27
-#define SPI_CS_CONTROL 28
-#define SET_SCAN_DELAY 29
-#define ENCODER_NEW 30
-const int SENSOR_NEW = 31;
-const int GET_ID = 35;
-const int SET_ID = 36;
+// #define SERIAL_LOOP_BACK 0
+// #define SET_PIN_MODE 1
+// #define DIGITAL_WRITE 2
+// #define PWM_WRITE 3
+// #define MODIFY_REPORTING                                                       \
+//   4 // mode(all, analog, or digital), pin, enable or disable
+// #define GET_FIRMWARE_VERSION 5
+// #define GET_PICO_UNIQUE_ID 6
+// #define SERVO_ATTACH 7 // unused
+// #define SERVO_WRITE 8  // unused
+// #define SERVO_DETACH 9 // unused
+// #define I2C_BEGIN 10
+// #define I2C_READ 11
+// #define I2C_WRITE 12
+// #define SONAR_NEW 13
+// #define DHT_NEW 14
+// #define STOP_ALL_REPORTS 15
+// #define ENABLE_ALL_REPORTS 16
+// #define RESET_DATA 17
+// #define RESET_BOARD 18
+// #define INITIALIZE_NEO_PIXELS 19
+// #define SHOW_NEO_PIXELS 20
+// #define SET_NEO_PIXEL 21
+// #define CLEAR_ALL_NEO_PIXELS 22
+// #define FILL_NEO_PIXELS 23
+// #define SPI_INIT 24
+// #define SPI_WRITE_BLOCKING 25
+// #define SPI_READ_BLOCKING 26
+// #define SPI_SET_FORMAT 27
+// #define SPI_CS_CONTROL 28
+// #define SET_SCAN_DELAY 29
+// #define ENCODER_NEW 30
+// const int SENSOR_NEW = 31;
+// const int GET_ID = 35;
+// const int SET_ID = 36;
+
+#pragma once
+
+enum  MESSAGE_IN_TYPE {
+SERIAL_LOOP_BACK = 0,
+SET_PIN_MODE = 1,
+DIGITAL_WRITE = 2,
+PWM_WRITE = 3,
+MODIFY_REPORTING = 4,
+GET_FIRMWARE_VERSION = 5,
+GET_PICO_UNIQUE_ID = 6,
+SERVO_ATTACH = 7,// = unused
+SERVO_WRITE = 8, // = unused
+SERVO_DETACH = 9, // = unused
+I2C_BEGIN = 10,
+I2C_READ = 11,
+I2C_WRITE = 12,
+SONAR_NEW = 13,
+DHT_NEW = 14,
+STOP_ALL_REPORTS = 15,
+ENABLE_ALL_REPORTS = 16,
+RESET_DATA = 17,
+RESET_BOARD = 18,
+INITIALIZE_NEO_PIXELS = 19,
+SHOW_NEO_PIXELS = 20,
+SET_NEO_PIXEL = 21,
+CLEAR_ALL_NEO_PIXELS = 22,
+FILL_NEO_PIXELS = 23,
+SPI_INIT = 24,
+SPI_WRITE_BLOCKING = 25,
+SPI_READ_BLOCKING = 26,
+SPI_SET_FORMAT = 27,
+SPI_CS_CONTROL = 28,
+SET_SCAN_DELAY = 29,
+ENCODER_NEW = 30,
+SENSOR_NEW = 31,
+ GET_ID = 35,
+ SET_ID = 36,
+FEATURE_CHECK = 37,
+ MAX_IN_MESSAGE_TYPE
+};
 /*****************************************************
  *                  MESSAGE OFFSETS
  ***************************************************/
@@ -390,37 +431,64 @@ typedef enum { SINGLE = 1, QUADRATURE = 2 } ENCODER_TYPES;
 /******************************************************
  *                 PIN MODE DEFINITIONS
  *****************************************************/
-#define DIGITAL_INPUT 0
-#define DIGITAL_OUTPUT 1
-#define PWM_OUTPUT 2
-#define DIGITAL_INPUT_PULL_UP 3
-#define DIGITAL_INPUT_PULL_DOWN 4
-#define ANALOG_INPUT 5
-#define SONAR 7
-#define DHT 8
 
+enum PIN_MODES {
+  NOT_SET = 255,
+  INPUT = 0,
+  OUTPUT = 1,
+  PWM = 2,
+  INPUT_PULL_UP = 3,
+  INPUT_PULL_DOWN = 4,
+  ANALOG_INPUT = 5,
+  SONAR_MODE = 7,
+  DHT_MODE = 8
+}; 
 #define PIN_MODE_NOT_SET 255
 
 /**************************************************
  *               REPORT DEFINITIONS
  **************************************************/
-#define SERIAL_LOOP_BACK_REPORT 0
-#define DIGITAL_REPORT 2
-#define ANALOG_REPORT 3
-#define FIRMWARE_REPORT 5
-#define REPORT_PICO_UNIQUE_ID 6
-#define SERVO_UNAVAILABLE 7 // for the future
-#define I2C_WRITE_REPORT 8
-#define I2C_READ_FAILED 9
-#define I2C_READ_REPORT 10
-#define SONAR_DISTANCE 11
-#define DHT_REPORT 12
-#define SPI_REPORT 13
-#define ENCODER_REPORT 14
-#define DEBUG_PRINT 99
-const int SENSOR_REPORT = 20;
-const int PONG_REPORT = 32;
-const int MODULE_REPORT = 34;
+// #define SERIAL_LOOP_BACK_REPORT 0
+// #define DIGITAL_REPORT 2
+// #define ANALOG_REPORT 3
+// #define FIRMWARE_REPORT 5
+// #define REPORT_PICO_UNIQUE_ID 6
+// #define SERVO_UNAVAILABLE 7 // for the future
+// #define I2C_WRITE_REPORT 8
+// #define I2C_READ_FAILED 9
+// #define I2C_READ_REPORT 10
+// #define SONAR_DISTANCE 11
+// #define DHT_REPORT 12
+// #define SPI_REPORT 13
+// #define ENCODER_REPORT 14
+// #define DEBUG_PRINT 99
+// const int SENSOR_REPORT = 20;
+// const int PONG_REPORT = 32;
+// const int MODULE_REPORT = 34;
+
+
+enum MESSAGE_OUT_TYPE {
+    SERIAL_LOOP_BACK_REPORT = 0,
+    DIGITAL_REPORT = 2,
+    ANALOG_REPORT = 3,
+    FIRMWARE_REPORT = 5,
+    REPORT_PICO_UNIQUE_ID = 6,
+    SERVO_UNAVAILABLE = 7, // for the future
+    I2C_WRITE_REPORT = 8,
+    I2C_READ_FAILED = 9,
+    I2C_READ_REPORT = 10,
+    SONAR_DISTANCE = 11,
+    DHT_REPORT = 12,
+    SPI_REPORT = 13,
+    ENCODER_REPORT = 14,
+    DEBUG_PRINT = 99,
+    SENSOR_REPORT = 20,
+    PONG_REPORT = 32,
+    MODULE_REPORT = 34,
+    MAX_OUT_MESSAGE_TYPE
+};
+
+
 /***************************************************************
  *          INPUT PIN REPORTING CONTROL SUB COMMANDS
  ***************************************************************/
