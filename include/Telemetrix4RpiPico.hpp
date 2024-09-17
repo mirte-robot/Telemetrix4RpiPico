@@ -135,7 +135,7 @@ extern volatile bool uart_enabled;
 // #define SET_PIN_MODE 1
 // #define DIGITAL_WRITE 2
 // #define PWM_WRITE 3
-// #define MODIFY_REPORTING                                                       \
+// #define MODIFY_REPORTING \
 //   4 // mode(all, analog, or digital), pin, enable or disable
 // #define GET_FIRMWARE_VERSION 5
 // #define GET_PICO_UNIQUE_ID 6
@@ -169,43 +169,43 @@ extern volatile bool uart_enabled;
 
 #pragma once
 
-enum  MESSAGE_IN_TYPE {
-SERIAL_LOOP_BACK = 0,
-SET_PIN_MODE = 1,
-DIGITAL_WRITE = 2,
-PWM_WRITE = 3,
-MODIFY_REPORTING = 4,
-GET_FIRMWARE_VERSION = 5,
-GET_PICO_UNIQUE_ID = 6,
-SERVO_ATTACH = 7,// = unused
-SERVO_WRITE = 8, // = unused
-SERVO_DETACH = 9, // = unused
-I2C_BEGIN = 10,
-I2C_READ = 11,
-I2C_WRITE = 12,
-SONAR_NEW = 13,
-DHT_NEW = 14,
-STOP_ALL_REPORTS = 15,
-ENABLE_ALL_REPORTS = 16,
-RESET_DATA = 17,
-RESET_BOARD = 18,
-INITIALIZE_NEO_PIXELS = 19,
-SHOW_NEO_PIXELS = 20,
-SET_NEO_PIXEL = 21,
-CLEAR_ALL_NEO_PIXELS = 22,
-FILL_NEO_PIXELS = 23,
-SPI_INIT = 24,
-SPI_WRITE_BLOCKING = 25,
-SPI_READ_BLOCKING = 26,
-SPI_SET_FORMAT = 27,
-SPI_CS_CONTROL = 28,
-SET_SCAN_DELAY = 29,
-ENCODER_NEW = 30,
-SENSOR_NEW = 31,
- GET_ID = 35,
- SET_ID = 36,
-FEATURE_CHECK = 37,
- MAX_IN_MESSAGE_TYPE
+enum MESSAGE_IN_TYPE {
+  SERIAL_LOOP_BACK = 0,
+  SET_PIN_MODE = 1,
+  DIGITAL_WRITE = 2,
+  PWM_WRITE = 3,
+  MODIFY_REPORTING = 4,
+  GET_FIRMWARE_VERSION = 5,
+  GET_PICO_UNIQUE_ID = 6,
+  SERVO_ATTACH = 7, // = unused
+  SERVO_WRITE = 8,  // = unused
+  SERVO_DETACH = 9, // = unused
+  I2C_BEGIN = 10,
+  I2C_READ = 11,
+  I2C_WRITE = 12,
+  SONAR_NEW = 13,
+  DHT_NEW = 14,
+  STOP_ALL_REPORTS = 15,
+  ENABLE_ALL_REPORTS = 16,
+  RESET_DATA = 17,
+  RESET_BOARD = 18,
+  INITIALIZE_NEO_PIXELS = 19,
+  SHOW_NEO_PIXELS = 20,
+  SET_NEO_PIXEL = 21,
+  CLEAR_ALL_NEO_PIXELS = 22,
+  FILL_NEO_PIXELS = 23,
+  SPI_INIT = 24,
+  SPI_WRITE_BLOCKING = 25,
+  SPI_READ_BLOCKING = 26,
+  SPI_SET_FORMAT = 27,
+  SPI_CS_CONTROL = 28,
+  SET_SCAN_DELAY = 29,
+  ENCODER_NEW = 30,
+  SENSOR_NEW = 31,
+  GET_ID = 35,
+  SET_ID = 36,
+  FEATURE_CHECK = 37,
+  MAX_IN_MESSAGE_TYPE
 };
 /*****************************************************
  *                  MESSAGE OFFSETS
@@ -442,7 +442,7 @@ enum PIN_MODES {
   ANALOG_INPUT = 5,
   SONAR_MODE = 7,
   DHT_MODE = 8
-}; 
+};
 #define PIN_MODE_NOT_SET 255
 
 /**************************************************
@@ -466,28 +466,26 @@ enum PIN_MODES {
 // const int PONG_REPORT = 32;
 // const int MODULE_REPORT = 34;
 
-
 enum MESSAGE_OUT_TYPE {
-    SERIAL_LOOP_BACK_REPORT = 0,
-    DIGITAL_REPORT = 2,
-    ANALOG_REPORT = 3,
-    FIRMWARE_REPORT = 5,
-    REPORT_PICO_UNIQUE_ID = 6,
-    SERVO_UNAVAILABLE = 7, // for the future
-    I2C_WRITE_REPORT = 8,
-    I2C_READ_FAILED = 9,
-    I2C_READ_REPORT = 10,
-    SONAR_DISTANCE = 11,
-    DHT_REPORT = 12,
-    SPI_REPORT = 13,
-    ENCODER_REPORT = 14,
-    DEBUG_PRINT = 99,
-    SENSOR_REPORT = 20,
-    PONG_REPORT = 32,
-    MODULE_REPORT = 34,
-    MAX_OUT_MESSAGE_TYPE
+  SERIAL_LOOP_BACK_REPORT = 0,
+  DIGITAL_REPORT = 2,
+  ANALOG_REPORT = 3,
+  FIRMWARE_REPORT = 5,
+  REPORT_PICO_UNIQUE_ID = 6,
+  SERVO_UNAVAILABLE = 7, // for the future
+  I2C_WRITE_REPORT = 8,
+  I2C_READ_FAILED = 9,
+  I2C_READ_REPORT = 10,
+  SONAR_DISTANCE = 11,
+  DHT_REPORT = 12,
+  SPI_REPORT = 13,
+  ENCODER_REPORT = 14,
+  DEBUG_PRINT = 99,
+  SENSOR_REPORT = 20,
+  PONG_REPORT = 32,
+  MODULE_REPORT = 34,
+  MAX_OUT_MESSAGE_TYPE
 };
-
 
 /***************************************************************
  *          INPUT PIN REPORTING CONTROL SUB COMMANDS
@@ -765,11 +763,7 @@ void module_data();
 
 const auto WATCHDOG_TIME = 5'000; // 5s timeout
 
-
 void get_id();
 void set_id();
-
-
-
 
 #endif // TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H

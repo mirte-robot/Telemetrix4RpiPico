@@ -966,13 +966,12 @@ void servo_attach() {
 }
 
 void servo_write() {
-  // get microticks value    
+  // get microticks value
   const uint32_t f_hz = 50; // frequency in hz.
 
   auto pin = command_buffer[1];
-  uint16_t ticks_ms = (command_buffer[2] << 8) +
-                   command_buffer[3];
-   uint32_t   top = 1'000'000UL / f_hz - 1; // calculate the TOP value
+  uint16_t ticks_ms = (command_buffer[2] << 8) + command_buffer[3];
+  uint32_t top = 1'000'000UL / f_hz - 1; // calculate the TOP value
 
   uint16_t value = (ticks_ms * top) / 20'000UL;
   pwm_set_gpio_level(pin, value);
@@ -1983,34 +1982,37 @@ void read_dht(uint dht_pin) {
 
 #define FLASH_TARGET_OFFSET (256 * 1024)
 
-const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
+const uint8_t *flash_target_contents =
+    (const uint8_t *)(XIP_BASE + FLASH_TARGET_OFFSET);
 
 void get_id() {
   int id[] = {2, GET_ID, 0};
-  id[2] = (uint8_t)(flash_target_contents[0]); // get the id from the flash, just the first byte
+  id[2] = (uint8_t)(flash_target_contents[0]); // get the id from the flash,
+                                               // just the first byte
   serial_write(id, 3);
 }
 
 void set_id() {
   // msg format: 2, SET_ID, new_id
-  uint8_t new_id = command_buffer[1]; 
-    int id_msg[] = {2, SET_ID, new_id}; 
-  if(new_id == flash_target_contents[0]) { // no need to write anything to flash 
+  uint8_t new_id = command_buffer[1];
+  int id_msg[] = {2, SET_ID, new_id};
+  if (new_id ==
+      flash_target_contents[0]) { // no need to write anything to flash
     serial_write(id_msg, 3);
-    
+
     return;
-  } 
+  }
   uint8_t new_id_array[FLASH_PAGE_SIZE] = {0};
   new_id_array[0] = new_id;
   uint32_t ints = save_and_disable_interrupts();
 
-    static_assert(FLASH_PAGE_SIZE == 256);
+  static_assert(FLASH_PAGE_SIZE == 256);
 
-  flash_range_erase(FLASH_TARGET_OFFSET, FLASH_SECTOR_SIZE); // required to erase before writing
+  flash_range_erase(FLASH_TARGET_OFFSET,
+                    FLASH_SECTOR_SIZE); // required to erase before writing
 
-  
   flash_range_program(FLASH_TARGET_OFFSET, new_id_array, FLASH_PAGE_SIZE);
-  restore_interrupts (ints);
+  restore_interrupts(ints);
 
   serial_write(id_msg, 3);
 }
@@ -2055,6 +2057,7 @@ void check_uart_loopback() {
     read_byte = uart_getc(UART_ID);
     if (read_byte == test_message) {
       uart_enabled = false;
+      // led_debug(50, 100);
       return;
     }
   }
@@ -2078,7 +2081,7 @@ void check_mirte_master() {
     return;
   }
   auto usb = check_usb_connection();
-  gpio_put(LED_PIN, usb);
+  // gpio_put(LED_PIN, usb);
   // Assume the pico is put on a mirte-master pcb
   // when the pc is shut down, but did not inform the pico for the relay, then
   // the power will stay on check usb connection, if not connected, then turn
@@ -2122,6 +2125,9 @@ int main() {
   // gpio_init(14);
   // gpio_set_dir(14, GPIO_OUT);
   // gpio_put(14, 0);
+    gpio_init(LED_PIN);
+  gpio_set_dir(LED_PIN, GPIO_OUT);
+
   stdio_init_all();
   stdio_set_translate_crlf(&stdio_usb, false);
 #ifdef WITH_UART_STDIO
@@ -2154,8 +2160,6 @@ int main() {
         (uint)-1;
   }
 
-  gpio_init(LED_PIN);
-  gpio_set_dir(LED_PIN, GPIO_OUT);
 
   // blink the board LED twice to show that the board is
   // starting afresh
