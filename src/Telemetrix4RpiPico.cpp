@@ -1138,7 +1138,7 @@ void VEML6040_Sensor::init_sequence() {
                               0b0,       // enable sensor
                           0b0            // reserved H byte
                       });
-  if(!ok) {
+  if (!ok) {
     this->stop = true;
   }
 }
@@ -1192,13 +1192,9 @@ void put_byte(uint8_t byte) {
 }
 /***********************************************/
 /***************MODULES*************************/
-void module_new() {
-  return;
-}
+void module_new() { return; }
 
-void module_data() {
-  return;
-}
+void module_data() { return; }
 
 /**********************ORIGINAL MODULES******************************/
 
