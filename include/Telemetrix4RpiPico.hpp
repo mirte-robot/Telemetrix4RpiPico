@@ -5,12 +5,7 @@
 #ifndef TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 #define TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
 
-#include "HX711.hpp"
-#include "HiwonderServo.hpp"
-#include "INA226v2.hpp"
-#include "MPU9250.hpp"
 #include "Telemetrix4RpiPico.pio.h"
-#include "VL53L0.hpp"
 #include "hardware/adc.h"
 #include "hardware/clocks.h"
 #include "hardware/i2c.h"
@@ -533,24 +528,6 @@ public:
   SENSOR_TYPES type = SENSOR_TYPES::MAX_SENSORS;
 };
 const int SENSORS_MAX_SETTINGS_A = 6;
-class GPS_Sensor : public Sensor {
-public:
-  GPS_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
-  void readSensor();
-
-private:
-  uart_inst_t *uart_id = uart0;
-};
-class ADXL345_Sensor : public Sensor {
-public:
-  ADXL345_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
-  void readSensor();
-
-private:
-  void init_sequence();
-  int i2c_port;
-  int i2c_addr = 83;
-};
 
 class VEML6040_Sensor : public Sensor {
 public:
@@ -561,45 +538,6 @@ private:
   void init_sequence();
   int i2c_port = 0;
   int i2c_addr = 0x10;
-};
-
-class VL53L0X_Sensor : public Sensor {
-public:
-  VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
-  void readSensor();
-
-private:
-  VL53L0X sensor;
-  int i2c_port = 0;
-  int i2c_addr = 0x52;
-};
-
-class MPU9250_Sensor : public Sensor {
-public:
-  MPU9250_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
-  void readSensor();
-
-private:
-  MPU9250 sensor;
-  int i2c_port = 0;
-};
-
-class HX711_Sensor : public Sensor {
-public:
-  HX711_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
-  void readSensor();
-
-private:
-  HX711 sensor;
-};
-
-class INA226_Sensor : public Sensor {
-public:
-  INA226_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
-  void readSensor();
-
-private:
-  INA226_WE *sensor;
 };
 
 void sensor_new();
@@ -617,63 +555,6 @@ enum MODULE_TYPES : uint8_t { // Max 255 modules, but will always fit in a
   MAX_MODULES
 };
 
-class Module {
-public:
-  virtual void readModule() = 0;
-  virtual void writeModule(std::vector<uint8_t> &data) = 0;
-  bool stop = false;
-  void publishData(std::vector<uint8_t> &data);
-  int num;
-  MODULE_TYPES type = MODULE_TYPES::MAX_MODULES;
-};
-
-class PCA9685_Module : public Module {
-public:
-  PCA9685_Module(std::vector<uint8_t> &data);
-  void readModule();
-  void writeModule(std::vector<uint8_t> &data);
-  void updateOne(std::vector<uint8_t> &data, size_t i);
-  enum REGISTERS : uint8_t {
-    LEDn_DIFF = 0x04,
-    LEDn_ON_L_base = 0x06,
-
-    PRESCALE = 0xFE,
-    MODE_1 = 0x00,
-    MODE_1_VAL = 0xA0, // auto increment
-    MODE_1_VAL_SLEEP = 0x30
-  };
-
-private:
-  int i2c_port = 0;
-  uint8_t addr = 0b0100'0000;
-};
-
-class Hiwonder_Servo : public Module {
-public:
-  Hiwonder_Servo(std::vector<uint8_t> &data);
-  void readModule();
-  void writeModule(std::vector<uint8_t> &data);
-  bool writeSingle(std::vector<uint8_t> &data, size_t i, bool single);
-
-private:
-  HiwonderBus *bus;
-  std::vector<HiwonderServo *> servos;
-};
-
-class Shutdown_Relay : public Module {
-public:
-  Shutdown_Relay(std::vector<uint8_t> &data);
-  void readModule();
-  void writeModule(std::vector<uint8_t> &data);
-
-private:
-  int pin = 0;
-  bool enabled = false;
-  bool enable_on = true;
-  decltype(time_us_32()) start_time = 0;
-};
-
-std::vector<Module *> modules;
 void module_new();
 void module_data();
 
