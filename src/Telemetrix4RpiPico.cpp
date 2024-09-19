@@ -1185,9 +1185,9 @@ void serial_write(std::vector<uint8_t> data) {
 }
 
 void put_byte(uint8_t byte) {
-  if (uart_enabled) {
-    uart_putc(UART_ID, byte);
-  }
+  // if (uart_enabled) {
+  //   uart_putc(UART_ID, byte);
+  // }
   putchar(byte);
 }
 /***********************************************/
@@ -1329,11 +1329,11 @@ void check_uart_loopback() {
 
 int get_byte() {
   // If there is no uart loopback, then also check the uart for incoming data.
-  if (uart_enabled) {
-    if (uart_is_readable(UART_ID)) {
-      return uart_getc(UART_ID);
-    }
-  }
+  // if (uart_enabled) {
+  //   if (uart_is_readable(UART_ID)) {
+  //     return uart_getc(UART_ID);
+  //   }
+  // }
   return getchar_timeout_us(100);
 }
 
@@ -1348,13 +1348,12 @@ int main() {
   // gpio_put(14, 0);
   stdio_init_all();
   stdio_set_translate_crlf(&stdio_usb, false);
-#ifdef WITH_UART_STDIO
-  // Mirte-master pcb has uart rx connected to tx, resulting in loopback errors
+// #ifdef WITH_UART_STDIO
   stdio_set_translate_crlf(&stdio_uart, false);
-#endif
+// #endif
   stdio_flush();
-  check_uart_loopback(); // Mirte-master has pin 0 and 1 tied together, then
-                         // don't want to use it
+  // check_uart_loopback(); // Mirte-master has pin 0 and 1 tied together, then
+  //                        // don't want to use it
   adc_init();
   // create an array of pin_descriptors for 100 pins
   // establish the digital pin array
