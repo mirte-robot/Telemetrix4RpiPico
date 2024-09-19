@@ -20,7 +20,8 @@ target_include_directories(Telemetrix4RpiPico
 pico_generate_pio_header(Telemetrix4RpiPico
                          ${CMAKE_CURRENT_LIST_DIR}/src/Telemetrix4RpiPico.pio)
 pico_enable_stdio_usb(Telemetrix4RpiPico 1)
-pico_enable_stdio_uart(Telemetrix4RpiPico 1) # TODO: For master version this must be disabled
+pico_enable_stdio_uart(Telemetrix4RpiPico 1) # TODO: For master version this
+                                             # must be disabled
 pico_add_extra_outputs(Telemetrix4RpiPico)
 target_link_libraries(
   Telemetrix4RpiPico

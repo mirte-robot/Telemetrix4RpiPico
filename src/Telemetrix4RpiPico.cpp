@@ -1348,9 +1348,9 @@ int main() {
   // gpio_put(14, 0);
   stdio_init_all();
   stdio_set_translate_crlf(&stdio_usb, false);
-// #ifdef WITH_UART_STDIO
+  // #ifdef WITH_UART_STDIO
   stdio_set_translate_crlf(&stdio_uart, false);
-// #endif
+  // #endif
   stdio_flush();
   // check_uart_loopback(); // Mirte-master has pin 0 and 1 tied together, then
   //                        // don't want to use it
