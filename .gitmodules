@@ -1,4 +1,3 @@
 [submodule "pico-ssd1306"]
 	path = pico-ssd1306
-	url = https://github.com/SuperJappie08/pico-ssd1306.git
-	branch = custom-font
+	url = https://github.com/arendjan/pico-ssd1306.git
