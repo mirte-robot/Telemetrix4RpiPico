@@ -598,13 +598,20 @@ void reset_neo_pixels() {
 }
 
 void sonar_callback(uint gpio, uint32_t events) {
-  // MAYBE: add mutex to prevent errs
   if (events & GPIO_IRQ_EDGE_FALL) {
     // stop time
     for (int i = 0; i <= sonar_count; i++) {
       hc_sr04_descriptor *sonar = &the_hc_sr04s.sonars[i];
       if (gpio == sonar->echo_pin) {
+        if (!mutex_try_enter(
+                &encoders.mutex,
+                NULL)) { // if mutex is locked, return, discard this reading
+          return;
+        }
+        // only need mutex on this update, as start_time is only read/updated in
+        // this interrupt
         sonar->last_time_diff = time_us_32() - sonar->start_time;
+        mutex_exit(&encoders.mutex);
         return;
       }
     }
