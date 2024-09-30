@@ -1119,29 +1119,32 @@ void scan_sonars() {
         (uint32_t)-1) { // Only when we have a fresh value send an update
       continue;
     }
+    uint16_t distance = 0xFFFF;
+    
     if ((current_time - sonar->start_time) >
         1'000'000) // if too long since last trigger, send 0
     {
       sonar->last_time_diff = 0;
-    }
-    if (sonar->last_time_diff > 30'000) {
+      distance = 0xFFFE; // must result in NaN in the computer
+    } else if (sonar->last_time_diff > 30'000) {
       sonar->last_time_diff = 0; // HC-SR04 has max range of 4 / 5m, with a
                                  // timeout pulse longer than 35ms
-    }
+      distance = 0xFFFD; // must result in +Inf in the computer
+    } else {
     // 1cm increments
-    uint16_t distance = (sonar->last_time_diff) / (58.0);
-    
-    if(sonar->last_time_diff == 0){
-      distance = 0xFFFF;
+     distance = (sonar->last_time_diff) / (58.0);
     }
+    // if(sonar->last_time_diff == 0){
+    //   distance = 0xFFFF;
+    // }
     if (distance == sonar->last_dist) {
       continue;
     }
     sonar->last_dist = distance;
 
     sonar_report_message[SONAR_TRIG_PIN] = (uint8_t)sonar->trig_pin;
-    sonar_report_message[M_WHOLE_VALUE] = distance / 100;
-    sonar_report_message[CM_WHOLE_VALUE] = (distance) % 100;
+    sonar_report_message[M_WHOLE_VALUE] = (uint8_t)(distance >> 8); // high byte, not M
+    sonar_report_message[CM_WHOLE_VALUE] = (distance) & 0xFF; // low byte, not CM anymore
     serial_write(sonar_report_message, 5);
 
     if (sonar->last_time_diff ==
