@@ -74,12 +74,16 @@ TmxSSD1306::TmxSSD1306(std::vector<uint8_t> &data) {
 
   this->text_buff.reserve(150);
 }
+extern void led_debug(int blinks, uint delay);
 
 void TmxSSD1306::resetModule() {
   if (!this->display->enabled) {
-    return;
+    // return;
   }
   // just show nothing when ROS is stopped
-  this->display->clear();
+  this->frameBuffer.clear();
   this->display->sendBuffer();
+  // sendbuffer only prepares the data, postwrite will send it in chuncks.
+  while (this->display->postWrite()) {
+  }
 }
