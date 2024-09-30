@@ -33,7 +33,7 @@ void TmxSSD1306::writeModule(std::vector<uint8_t> &data) {
 
   } else if (data[0] == MessageType::TEXT_DONE) {
     this->frameBuffer.clear();
-    pico_ssd1306::drawText(display, font_5x8, this->text_buff.c_str(), 0, 0);
+    pico_ssd1306::drawText(display, courb08_6x11, this->text_buff.c_str(), 0, 0);
     display->sendBuffer(); // 'non'blocking, real data transfer in the postWrite
                            // call.
     auto len = this->text_buff.length();
@@ -61,8 +61,11 @@ TmxSSD1306::TmxSSD1306(std::vector<uint8_t> &data) {
   }
   auto i2c_port = data[0] ? i2c1 : i2c0;
 
+  // Ensure this firmware is compatible with other tmx versions.
+  auto address = (data.size() > 1) ? data[1] : 0x3C;
+
   this->display =
-      new pico_ssd1306::SSD1306(i2c_port, 0x3C, pico_ssd1306::Size::W128xH64);
+      new pico_ssd1306::SSD1306(i2c_port, address, pico_ssd1306::Size::W128xH64);
   this->display->setPostWrite(true);
   this->display->setOrientation(0);
 
