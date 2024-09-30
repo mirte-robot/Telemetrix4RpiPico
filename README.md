@@ -116,7 +116,7 @@ Send
 ### Sonar
 The sonars(hc-sr04) are time-triggered round-robin at a rate of 10Hz to not interfere with eachother. Example: 10Hz per sonar, 3 sonars, timer at 30Hz. The sonar system uses a mutex to make sure writing of a new reading will not mess up reading from it. This might lead to missing sonar readings/messages.
 
-Max distance is 4m. Distance is reported in cm, in 2 bytes: ```distance_m = int(distance/100); distance_cm = distance%100```
+Max distance is 4m. Distance is reported in cm, in 2 bytes: ```distance_hi = int(distance >> 8); distance_low = distance & 0xFF```
 
 max sonars is 4.
 
@@ -128,7 +128,7 @@ Add sonar:
 
 Receive:
 ```py
-[SONAR_REPORT = 11, trigger_pin, distance_m, distance_cm]
+[SONAR_REPORT = 11, trigger_pin, distance_high, distance_low]
 ```
 
 ### Encoders
