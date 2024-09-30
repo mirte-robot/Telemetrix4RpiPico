@@ -54,7 +54,8 @@ uint sonar_offset;
 sonar_data the_hc_sr04s = {.next_sonar_index = 0,
                            .trigger_timer = {},
                            .trigger_mask = 0,
-                           .sonars = {}};
+                           .sonars = {},
+                           .mutex = {}};
 
 // number of active dht devices
 int dht_count = -1;
@@ -414,17 +415,17 @@ void i2c_begin() {
   // get the GPIO pins associated with this i2c instance
   uint sda_gpio = command_buffer[I2C_SDA_GPIO_PIN];
   uint scl_gpio = command_buffer[I2C_SCL_GPIO_PIN];
-
-  // set the i2c instance - 0 or 1
-  if (command_buffer[I2C_PORT] == 0) {
-    i2c_init(i2c0, 100 * 1000);
-  } else {
-    i2c_init(i2c1, 100 * 1000);
-  }
-  gpio_set_function(sda_gpio, GPIO_FUNC_I2C);
-  gpio_set_function(scl_gpio, GPIO_FUNC_I2C);
-  gpio_pull_up(sda_gpio);
-  gpio_pull_up(scl_gpio);
+  reset_i2c(scl_gpio, sda_gpio, command_buffer[I2C_PORT]);
+  // // set the i2c instance - 0 or 1
+  // if (command_buffer[I2C_PORT] == 0) {
+  //   i2c_init(i2c0, 100 * 1000);
+  // } else {
+  //   i2c_init(i2c1, 100 * 1000);
+  // }
+  // gpio_set_function(sda_gpio, GPIO_FUNC_I2C);
+  // gpio_set_function(scl_gpio, GPIO_FUNC_I2C);
+  // gpio_pull_up(sda_gpio);
+  // gpio_pull_up(scl_gpio);
 }
 
 void i2c_read() {
@@ -1128,7 +1129,11 @@ void scan_sonars() {
                                  // timeout pulse longer than 35ms
     }
     // 1cm increments
-    int distance = (sonar->last_time_diff) / (58.0);
+    uint16_t distance = (sonar->last_time_diff) / (58.0);
+    
+    if(sonar->last_time_diff == 0){
+      distance = 0xFFFF;
+    }
     if (distance == sonar->last_dist) {
       continue;
     }
@@ -1306,14 +1311,26 @@ VEML6040_Sensor::VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
 }
 
 void VEML6040_Sensor::init_sequence() {
-  bool ok = write_i2c(this->i2c_port, this->i2c_addr,
+    bool ok = write_i2c(this->i2c_port, this->i2c_addr,
                       {
-                          0,             // register 0
-                          0b000 << 4 |   // timing 40ms
-                              0b0 << 2 | // no trigger
-                              0b0 << 1 | // auto mode
-                              0b0,       // enable sensor
-                          0b0            // reserved H byte
+                          // 0,             // register 0
+                          // 0b000 << 4 |   // timing 40ms
+                          //     0b0 << 2 | // no trigger
+                          //     0b0 << 1 | // auto mode
+                          //     0b0,       // enable sensor
+                          // 0b0            // reserved H byte
+                          0x21 // 0x21 = 0b0010'0001, 100 time, stop bit
+                      });
+  sleep_ms(10);
+  ok &= write_i2c(this->i2c_port, this->i2c_addr,
+                      {
+                          // 0,             // register 0
+                          // 0b000 << 4 |   // timing 40ms
+                          //     0b0 << 2 | // no trigger
+                          //     0b0 << 1 | // auto mode
+                          //     0b0,       // enable sensor
+                          // 0b0            // reserved H byte
+                          0x20 // 0x20 = 0b0010'0000, 100 time, no stop bit
                       });
   if (!ok) {
     this->stop = true;
