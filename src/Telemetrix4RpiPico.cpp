@@ -1115,44 +1115,35 @@ void scan_sonars() {
   last_scan += 100'000;
   for (int i = 0; i <= sonar_count; i++) {
     hc_sr04_descriptor *sonar = &the_hc_sr04s.sonars[i];
-    if (sonar->last_time_diff ==
-        (uint32_t)-1) { // Only when we have a fresh value send an update
-      continue;
-    }
+
     uint16_t distance = 0xFFFF;
-    
-    if ((current_time - sonar->start_time) >
-        1'000'000) // if too long since last trigger, send 0
+    if (sonar->last_time_diff == (uint32_t)-1) {
+      // No update
+      distance = 0xFFFC; // error value
+    } else if ((current_time - sonar->start_time) >
+               1'000'000) // if too long since last trigger, send 0
     {
-      sonar->last_time_diff = 0;
       distance = 0xFFFE; // must result in NaN in the computer
     } else if (sonar->last_time_diff > 30'000) {
-      sonar->last_time_diff = 0; // HC-SR04 has max range of 4 / 5m, with a
-                                 // timeout pulse longer than 35ms
+      // HC-SR04 has max range of 4 / 5m, with a
+      // timeout pulse longer than 35ms
       distance = 0xFFFD; // must result in +Inf in the computer
     } else {
-    // 1cm increments
-     distance = (sonar->last_time_diff) / (58.0);
+      // 1cm increments
+      distance = (sonar->last_time_diff) / (58.0);
     }
-    // if(sonar->last_time_diff == 0){
-    //   distance = 0xFFFF;
-    // }
     if (distance == sonar->last_dist) {
       continue;
     }
     sonar->last_dist = distance;
 
     sonar_report_message[SONAR_TRIG_PIN] = (uint8_t)sonar->trig_pin;
-    sonar_report_message[M_WHOLE_VALUE] = (uint8_t)(distance >> 8); // high byte, not M
-    sonar_report_message[CM_WHOLE_VALUE] = (distance) & 0xFF; // low byte, not CM anymore
+    sonar_report_message[M_WHOLE_VALUE] =
+        (uint8_t)(distance >> 8); // high byte, not M
+    sonar_report_message[CM_WHOLE_VALUE] =
+        (distance)&0xFF; // low byte, not CM anymore
     serial_write(sonar_report_message, 5);
-
-    if (sonar->last_time_diff ==
-        0) { // disable for next rounds when there is no new value for too long
-      sonar->last_time_diff = -1;
-    } else { // set distance to 0 if there is no scan value
-      sonar->last_time_diff = 0;
-    }
+    sonar->last_time_diff = -1; // signal for next loop that there's no new data
   }
   mutex_exit(&the_hc_sr04s.mutex);
 }
@@ -1314,7 +1305,7 @@ VEML6040_Sensor::VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
 }
 
 void VEML6040_Sensor::init_sequence() {
-    bool ok = write_i2c(this->i2c_port, this->i2c_addr,
+  bool ok = write_i2c(this->i2c_port, this->i2c_addr,
                       {
                           // 0,             // register 0
                           // 0b000 << 4 |   // timing 40ms
@@ -1326,15 +1317,15 @@ void VEML6040_Sensor::init_sequence() {
                       });
   sleep_ms(10);
   ok &= write_i2c(this->i2c_port, this->i2c_addr,
-                      {
-                          // 0,             // register 0
-                          // 0b000 << 4 |   // timing 40ms
-                          //     0b0 << 2 | // no trigger
-                          //     0b0 << 1 | // auto mode
-                          //     0b0,       // enable sensor
-                          // 0b0            // reserved H byte
-                          0x20 // 0x20 = 0b0010'0000, 100 time, no stop bit
-                      });
+                  {
+                      // 0,             // register 0
+                      // 0b000 << 4 |   // timing 40ms
+                      //     0b0 << 2 | // no trigger
+                      //     0b0 << 1 | // auto mode
+                      //     0b0,       // enable sensor
+                      // 0b0            // reserved H byte
+                      0x20 // 0x20 = 0b0010'0000, 100 time, no stop bit
+                  });
   if (!ok) {
     this->stop = true;
   }
@@ -2145,7 +2136,7 @@ int main() {
   // gpio_init(14);
   // gpio_set_dir(14, GPIO_OUT);
   // gpio_put(14, 0);
-    gpio_init(LED_PIN);
+  gpio_init(LED_PIN);
   gpio_set_dir(LED_PIN, GPIO_OUT);
 
   stdio_init_all();
@@ -2179,7 +2170,6 @@ int main() {
     the_hc_sr04s.sonars[i].trig_pin = the_hc_sr04s.sonars[i].echo_pin =
         (uint)-1;
   }
-
 
   // blink the board LED twice to show that the board is
   // starting afresh
