@@ -1,0 +1,770 @@
+//
+// Created by afy on 3/3/21.
+//
+
+#ifndef TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
+#define TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H
+#include "HMC5883L.hpp"
+#include "HX711.hpp"
+#include "HiwonderServo.hpp"
+#include "INA226v2.hpp"
+#include "MPU9250.hpp"
+#include "Modules.hpp"
+#include "Telemetrix4RpiPico.pio.h"
+#include "VL53L0.hpp"
+#include "hardware/adc.h"
+#include "hardware/clocks.h"
+#include "hardware/i2c.h"
+#include "hardware/pio.h"
+#include "hardware/pwm.h"
+#include "hardware/spi.h"
+#include "hardware/watchdog.h"
+#include "i2c_helpers.hpp"
+#include "math.h"
+#include "neopixel.hpp"
+#include "pico/stdlib.h"
+#include "pico/unique_id.h"
+#include "tmx_ssd1306.hpp"
+#include <array>
+#include <pico/sync.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vector>
+/************************** FORWARD REFERENCES ***********************
+We define all functions here as extern to provide allow
+forward referencing.
+**********************************************************************/
+
+extern void serial_loopback();
+
+extern void set_pin_mode();
+
+extern void digital_write();
+
+extern void pwm_write();
+
+extern void modify_reporting();
+
+extern void get_firmware_version();
+
+extern void get_pico_unique_id();
+
+extern void servo_attach();
+
+extern void servo_write();
+
+extern void servo_detach();
+
+extern void i2c_begin();
+
+extern void i2c_read();
+
+extern void i2c_write();
+
+extern void sonar_new();
+
+extern void serial_write(const int *buffer, int num_of_bytes_to_send);
+
+extern void led_debug(int blinks, uint delay);
+
+extern void send_debug_info(uint id, uint value);
+
+extern void dht_new();
+
+extern void stop_all_reports();
+
+extern void enable_all_reports();
+
+extern void reset_data();
+
+extern void reset_board();
+
+extern void scan_digital_inputs();
+
+extern void scan_analog_inputs();
+
+extern void init_neo_pixels();
+
+extern void show_neo_pixels();
+
+extern void set_neo_pixel();
+
+extern void clear_all_neo_pixels();
+
+extern void fill_neo_pixels();
+
+extern void read_sonar(uint);
+
+extern void read_dht(uint);
+
+extern void init_spi();
+
+extern void read_blocking_spi();
+
+extern void write_blocking_spi();
+
+extern void spi_cs_control();
+
+extern void set_format_spi();
+
+extern void set_scan_delay();
+
+void encoder_new();
+
+// functions to allow uart loopback on the mirte-master pcb for the servos
+int get_byte();
+
+void put_byte(uint8_t byte);
+
+void check_uart_loopback();
+extern volatile bool uart_enabled;
+#define UART_ID uart0
+#define BAUD_RATE 115200
+#define UART_TX_PIN 0
+#define UART_RX_PIN 1
+
+/*********************************************************
+ *                       COMMAND DEFINES
+ ********************************************************/
+
+// Commands -received by this sketch
+// Add commands retaining the sequential numbering.
+// The order of commands here must be maintained in the command_table below.
+// #define SERIAL_LOOP_BACK 0
+// #define SET_PIN_MODE 1
+// #define DIGITAL_WRITE 2
+// #define PWM_WRITE 3
+// #define MODIFY_REPORTING \
+//   4 // mode(all, analog, or digital), pin, enable or disable
+// #define GET_FIRMWARE_VERSION 5
+// #define GET_PICO_UNIQUE_ID 6
+// #define SERVO_ATTACH 7 // unused
+// #define SERVO_WRITE 8  // unused
+// #define SERVO_DETACH 9 // unused
+// #define I2C_BEGIN 10
+// #define I2C_READ 11
+// #define I2C_WRITE 12
+// #define SONAR_NEW 13
+// #define DHT_NEW 14
+// #define STOP_ALL_REPORTS 15
+// #define ENABLE_ALL_REPORTS 16
+// #define RESET_DATA 17
+// #define RESET_BOARD 18
+// #define INITIALIZE_NEO_PIXELS 19
+// #define SHOW_NEO_PIXELS 20
+// #define SET_NEO_PIXEL 21
+// #define CLEAR_ALL_NEO_PIXELS 22
+// #define FILL_NEO_PIXELS 23
+// #define SPI_INIT 24
+// #define SPI_WRITE_BLOCKING 25
+// #define SPI_READ_BLOCKING 26
+// #define SPI_SET_FORMAT 27
+// #define SPI_CS_CONTROL 28
+// #define SET_SCAN_DELAY 29
+// #define ENCODER_NEW 30
+// const int SENSOR_NEW = 31;
+// const int GET_ID = 35;
+// const int SET_ID = 36;
+
+#pragma once
+
+enum MESSAGE_IN_TYPE {
+  SERIAL_LOOP_BACK = 0,
+  SET_PIN_MODE = 1,
+  DIGITAL_WRITE = 2,
+  PWM_WRITE = 3,
+  MODIFY_REPORTING = 4,
+  GET_FIRMWARE_VERSION = 5,
+  GET_PICO_UNIQUE_ID = 6,
+  SERVO_ATTACH = 7, // = unused
+  SERVO_WRITE = 8,  // = unused
+  SERVO_DETACH = 9, // = unused
+  I2C_BEGIN = 10,
+  I2C_READ = 11,
+  I2C_WRITE = 12,
+  SONAR_NEW = 13,
+  DHT_NEW = 14,
+  STOP_ALL_REPORTS = 15,
+  ENABLE_ALL_REPORTS = 16,
+  RESET_DATA = 17,
+  RESET_BOARD = 18,
+  INITIALIZE_NEO_PIXELS = 19,
+  SHOW_NEO_PIXELS = 20,
+  SET_NEO_PIXEL = 21,
+  CLEAR_ALL_NEO_PIXELS = 22,
+  FILL_NEO_PIXELS = 23,
+  SPI_INIT = 24,
+  SPI_WRITE_BLOCKING = 25,
+  SPI_READ_BLOCKING = 26,
+  SPI_SET_FORMAT = 27,
+  SPI_CS_CONTROL = 28,
+  SET_SCAN_DELAY = 29,
+  ENCODER_NEW = 30,
+  SENSOR_NEW = 31,
+  GET_ID = 35,
+  SET_ID = 36,
+  FEATURE_CHECK = 37,
+  MAX_IN_MESSAGE_TYPE
+};
+/*****************************************************
+ *                  MESSAGE OFFSETS
+ ***************************************************/
+// i2c_common
+#define I2C_PORT 1
+#define I2C_DEVICE_ADDRESS 2 // read and write
+
+// i2c_init
+#define I2C_SDA_GPIO_PIN 2
+#define I2C_SCL_GPIO_PIN 3
+
+// i2c_read
+#define I2C_READ_MESSAGE_ID 3
+#define I2C_READ_REGISTER 4
+#define I2C_READ_LENGTH 5
+#define I2C_READ_NO_STOP_FLAG 6
+
+// I2c_write
+#define I2C_WRITE_MESSAGE_ID 3
+#define I2C_WRITE_NUMBER_OF_BYTES 4
+#define I2C_WRITE_NO_STOP_FLAG 5
+#define I2C_WRITE_BYTES_TO_WRITE 6
+
+// This defines how many bytes there are
+// that precede the first byte read position
+// in the i2c report message buffer.
+#define I2C_READ_DATA_BASE_BYTES 6
+
+// Start of i2c data read within the message buffer
+#define I2C_READ_START_OF_DATA 7
+
+// Indicator that no i2c register is being specified in the command
+#define I2C_NO_REGISTER 254
+
+/******************************* COMMAND BUFFER OFFSETS ************/
+// loop back command buffer offsets
+#define DATA_TO_LOOP_BACK 1
+
+// set pin mode command buffer offsets
+#define SET_PIN_MODE_GPIO_PIN 1
+#define SET_PIN_MODE_MODE_TYPE 2
+
+// set pin mode digital input command offsets
+#define SET_PIN_MODE_DIGITAL_IN_REPORTING_STATE 3
+
+// set pin mode PWM output input command offsets
+#define SET_PIN_MODE_PWM_HIGH_VALUE 2
+#define SET_PIN_MODE_PWM_LOW_VALUE 3
+
+// ADC number for temperature sensor
+#define ADC_TEMPERATURE_REGISTER 4
+
+// set pin mode analog input command offsets
+#define SET_PIN_MODE_ANALOG_IN_REPORTING_STATE 5
+#define SET_PIN_MODE_ANALOG_DIFF_HIGH 3
+#define SET_PIN_MODE_ANALOG_DIFF_LOW 4
+
+// set pin mode spi offsets
+#define SPI_PORT 1
+#define SPI_MISO 2
+#define SPI_MOSI 3
+#define SPI_CLK_PIN 4
+#define SPI_FREQ_MSB 5
+#define SPI_FREQ_3 6
+#define SPI_FREQ_2 7
+#define SPI_FREQ_1 8
+#define SPI_CS_LIST_LENGTH 9
+#define SPI_CS_LIST 10 // beginning of list
+
+// spi write blocking offsets
+// #define SPI_PORT 1
+#define SPI_WRITE_LEN 2
+#define SPI_WRITE_DATA 3
+
+// spi read blocking offsets
+// #define SPI_PORT 1
+#define SPI_READ_LEN 2
+#define SPI_REPEATED_DATA 3
+
+// spi chipselect command offsets
+#define SPI_SELECT_PIN 1
+#define SPI_SELECT_STATE 2
+
+// spi set format command offsets
+// #define SPI_PORT 1
+#define SPI_NUMBER_OF_BITS 2
+#define SPI_CLOCK_PHASE 3
+#define SPI_CLOCK_POLARITY 4
+
+// digital_write
+#define DIGITAL_WRITE_GPIO_PIN 1
+#define DIGITAL_WRITE_VALUE 2
+
+// pwm write
+#define PWM_WRITE_GPIO_PIN 1
+#define PWM_WRITE_HIGH_VALUE 2
+#define PWM_WRITE_LOW_VALUE 3
+
+// modify reporting
+// This can be a gpio pin or adc channel
+#define MODIFY_REPORTING_PIN 2
+#define MODIFY_REPORTING_TYPE 1
+
+// i2c report buffer offsets
+#define I2C_PACKET_LENGTH 0
+#define I2C_REPORT_ID 1
+#define I2C_REPORT_PORT 2
+#define I2C_REPORT_DEVICE_ADDRESS 3
+#define I2C_REPORT_READ_REGISTER 4
+#define I2C_REPORT_READ_NUMBER_DATA_BYTES 5
+
+#define I2C_ERROR_REPORT_LENGTH 4
+#define I2C_ERROR_REPORT_NUM_OF_BYTE_TO_SEND 5
+
+// spi report buffer offsets
+#define SPI_PACKET_LENGTH 0
+#define SPI_REPORT_ID 1
+#define SPI_REPORT_PORT 2
+#define SPI_REPORT_NUMBER_OF_DATA_BYTES 3
+#define SPI_DATA 4
+
+#define SPI_READ_DATA_BASE_BYTES 5
+
+// scan delay buffer offsets
+#define SCAN_DELAY 1
+
+// init neopixels
+// command offsets
+#define NP_PIN_NUMBER 1
+#define NP_NUMBER_OF_PIXELS 2
+#define NP_RED_FILL 3
+#define NP_GREEN_FILL 4
+#define NP_BLUE_FILL 5
+
+// NeoPixel clock frequency
+#define NP_FREQUENCY 800000
+
+// Pixel buffer array offsets
+#define RED 0
+#define GREEN 1
+#define BLUE 2
+
+// set_neo_pixel command offsets
+#define NP_PIXEL_NUMBER 1
+#define NP_SET_RED 2
+#define NP_SET_GREEN 3
+#define NP_SET_BLUE 4
+#define NP_SET_AUTO_SHOW 5
+
+// fill_neo_pixels command offsets
+#define NP_FILL_RED 1
+#define NP_FILL_GREEN 2
+#define NP_FILL_BLUE 3
+#define NP_FILL_AUTO_SHOW 4
+
+// clear_all_neo_pixels command offsets
+#define NP_CLEAR_AUTO_SHOW 1
+
+#define MAXIMUM_NUM_NEOPIXELS 150
+
+// init hc-sr04
+// command offsets
+#define SONAR_TRIGGER_PIN 1
+#define SONAR_ECHO_PIN 2
+
+/* Maximum number of Sonar devices */
+#define MAX_SONARS 4
+
+// init dht command offsets
+#define DHT_DATA_PIN 1
+
+/* Maximum number of DHT devices */
+#define MAX_DHTS 2
+
+/* maximum dht timings */
+const uint DHT_MAX_TIMINGS = 85;
+
+// encoder init
+#define ENCODER_TYPE 1
+#define ENCODER_PIN_A 2
+#define ENCODER_PIN_B 3
+
+// Max encoder devices
+#define MAX_ENCODERS 4
+
+typedef enum { SINGLE = 1, QUADRATURE = 2 } ENCODER_TYPES;
+
+// encoder reports are identified by pin A
+#define ENCODER_REPORT_PIN_A 2
+#define ENCODER_REPORT_STEP 3
+
+/*********************** REPORTING BUFFER OFFSETS ******************/
+// loopback buffer offset for data being looped back
+#define LOOP_BACK_DATA 2
+
+// send_debug message buffer offsets
+#define DEBUG_ID 2
+#define DEBUG_VALUE_HIGH_BYTE 3
+#define DEBUG_VALUE_LOW_BYTE 4
+
+// digital input report buffer offsets
+#define DIGITAL_INPUT_GPIO_PIN 2
+#define DIGITAL_INPUT_GPIO_VALUE 3
+
+// analog input report buffer offsets
+#define ANALOG_INPUT_GPIO_PIN 2
+#define ANALOG_VALUE_HIGH_BYTE 3
+#define ANALOG_VALUE_LOW_BYTE 4
+
+// sonar report buffer offsets
+#define SONAR_TRIG_PIN 2
+#define M_WHOLE_VALUE 3
+#define CM_WHOLE_VALUE 4
+
+// dht report buffer offset
+#define DHT_REPORT_PIN 2
+#define DHT_HUMIDITY_WHOLE_VALUE 3
+#define DHT_HUMIDITY_FRAC_VALUE 4
+#define DHT_TEMPERATURE_WHOLE_VALUE 5
+#define DHT_TEMPERATURE_FRAC_VALUE 6
+
+/******************************************************
+ *                 PIN MODE DEFINITIONS
+ *****************************************************/
+
+enum PIN_MODES {
+  NOT_SET = 255,
+  INPUT = 0,
+  OUTPUT = 1,
+  PWM = 2,
+  INPUT_PULL_UP = 3,
+  INPUT_PULL_DOWN = 4,
+  ANALOG_INPUT = 5,
+  SONAR_MODE = 7,
+  DHT_MODE = 8
+};
+#define PIN_MODE_NOT_SET 255
+
+/**************************************************
+ *               REPORT DEFINITIONS
+ **************************************************/
+// #define SERIAL_LOOP_BACK_REPORT 0
+// #define DIGITAL_REPORT 2
+// #define ANALOG_REPORT 3
+// #define FIRMWARE_REPORT 5
+// #define REPORT_PICO_UNIQUE_ID 6
+// #define SERVO_UNAVAILABLE 7 // for the future
+// #define I2C_WRITE_REPORT 8
+// #define I2C_READ_FAILED 9
+// #define I2C_READ_REPORT 10
+// #define SONAR_DISTANCE 11
+// #define DHT_REPORT 12
+// #define SPI_REPORT 13
+// #define ENCODER_REPORT 14
+// #define DEBUG_PRINT 99
+// const int SENSOR_REPORT = 20;
+// const int PONG_REPORT = 32;
+// const int MODULE_REPORT = 34;
+
+enum MESSAGE_OUT_TYPE {
+  SERIAL_LOOP_BACK_REPORT = 0,
+  DIGITAL_REPORT = 2,
+  ANALOG_REPORT = 3,
+  FIRMWARE_REPORT = 5,
+  REPORT_PICO_UNIQUE_ID = 6,
+  SERVO_UNAVAILABLE = 7, // for the future
+  I2C_WRITE_REPORT = 8,
+  I2C_READ_FAILED = 9,
+  I2C_READ_REPORT = 10,
+  SONAR_DISTANCE = 11,
+  DHT_REPORT = 12,
+  SPI_REPORT = 13,
+  ENCODER_REPORT = 14,
+  DEBUG_PRINT = 99,
+  SENSOR_REPORT = 20,
+  PONG_REPORT = 32,
+  MODULE_REPORT = 34,
+  MAX_OUT_MESSAGE_TYPE
+};
+
+/***************************************************************
+ *          INPUT PIN REPORTING CONTROL SUB COMMANDS
+ ***************************************************************/
+#define REPORTING_DISABLE_ALL 0
+#define REPORTING_ANALOG_ENABLE 1
+#define REPORTING_DIGITAL_ENABLE 2
+#define REPORTING_ANALOG_DISABLE 3
+#define REPORTING_DIGITAL_DISABLE 4
+
+/* Maximum Supported pins */
+#define MAX_DIGITAL_PINS_SUPPORTED 30
+#define MAX_ANALOG_PINS_SUPPORTED 5
+
+/* Firmware Version Values */
+#define FIRMWARE_MAJOR 1
+#define FIRMWARE_MINOR 3
+
+// maximum length of a command packet in bytes
+#define MAX_COMMAND_LENGTH 30
+
+// Indicator that no i2c register is being specified in the command
+#define I2C_NO_REGISTER_SPECIFIED 254
+
+// a descriptor for digital pins
+typedef struct {
+  uint pin_number;
+  uint pin_mode;
+  uint reporting_enabled; // If true, then send reports if an input pin
+  int last_value;         // Last value read for input mode
+} pin_descriptor;
+
+// a descriptor for analog pins
+typedef struct analog_pin_descriptor {
+  uint reporting_enabled; // If true, then send reports if an input pin
+  int last_value;         // Last value read for input mode
+  int differential;       // difference between current and last value needed
+} analog_pin_descriptor;
+
+// This structure describes an HC-SR04 type device
+typedef struct hc_sr04_descriptor {
+  uint trig_pin; // trigger pin
+  uint echo_pin; // echo pin
+  uint32_t start_time;
+  uint32_t last_time_diff;
+  int last_dist;
+} hc_sr04_descriptor;
+
+// this structure holds an index into the sonars array
+// and the sonars array
+typedef struct sonar_data {
+  int next_sonar_index;
+  repeating_timer_t trigger_timer;
+  uint32_t trigger_mask;
+  hc_sr04_descriptor sonars[MAX_SONARS];
+  mutex_t mutex;
+} sonar_data;
+
+// this structure describes a DHT type device
+typedef struct dht_descriptor {
+  uint data_pin; // data pin
+  absolute_time_t previous_time;
+  /* for possible future use
+  int last_val_whole; // value on right side of decimal
+  int last_val_frac; // value on left side of decimal
+  */
+} dht_descriptor;
+
+// this structure holds an index into the dht array
+// and the dhts array
+typedef struct dht_data {
+  int next_dht_index;
+  dht_descriptor dhts[MAX_DHTS];
+} dht_data;
+
+// encoder type
+typedef struct {
+  ENCODER_TYPES type;
+  int A;
+  int B;
+  int8_t step;
+  int last_state;
+} encoder_t;
+
+typedef struct {
+  int next_encoder_index;
+  repeating_timer_t trigger_timer;
+  encoder_t encoders[MAX_ENCODERS];
+  mutex_t mutex;
+} encoder_data;
+encoder_data encoders = {.next_encoder_index = 0, .trigger_timer = {}, .encoders = {}, .mutex = {}};
+typedef struct {
+  // a pointer to the command processing function
+  void (*command_func)(void);
+} command_descriptor;
+
+bool watchdog_enable_shutdown = true; // if false, then don't do anything with
+                                      // the watchdog and just wait for shutdown
+void ping();
+
+/*****************************************************************************/
+/****SENSORS*/
+/*****************************************************************************/
+
+enum SENSOR_TYPES : uint8_t { // Max 255 sensors, but will always fit in a
+                              // single byte!
+  GPS = 0,
+  LOAD_CELL = 1,
+  MPU_9250 = 2,
+  TOF_VL53 = 3,
+  VEML6040 = 4, // Color sensor
+  ADXL345 = 5,  // 3 axis accel
+  INA226a = 6,
+  HMC5883l = 7,
+  MAX_SENSORS
+};
+class Sensor {
+public:
+  virtual void readSensor() = 0;
+  virtual void resetSensor() = 0;
+  bool stop = false;
+  void writeSensorData(std::vector<uint8_t> data);
+  int num;
+  SENSOR_TYPES type = SENSOR_TYPES::MAX_SENSORS;
+};
+const int SENSORS_MAX_SETTINGS_A = 6;
+class GPS_Sensor : public Sensor {
+public:
+  GPS_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  void resetSensor(){};
+
+private:
+  uart_inst_t *uart_id = uart0;
+};
+class ADXL345_Sensor : public Sensor {
+public:
+  ADXL345_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  void resetSensor(){};
+
+private:
+  void init_sequence();
+  int i2c_port = 0;
+  int i2c_addr = 83;
+};
+
+class VEML6040_Sensor : public Sensor {
+public:
+  VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  void resetSensor(){};
+
+private:
+  void init_sequence();
+  int i2c_port = 0;
+  int i2c_addr = 0x10;
+};
+
+class VL53L0X_Sensor : public Sensor {
+public:
+  VL53L0X_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  void resetSensor(){};
+
+private:
+  VL53L0X sensor;
+  int i2c_port = 0;
+  int i2c_addr = 0x52;
+};
+
+class MPU9250_Sensor : public Sensor {
+public:
+  MPU9250_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  void resetSensor(){};
+
+private:
+  bool enabled = true;
+  MPU9250 sensor;
+  int i2c_port = 0;
+};
+
+class HX711_Sensor : public Sensor {
+public:
+  HX711_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  void resetSensor(){};
+
+private:
+  HX711 sensor = HX711();
+};
+
+class INA226_Sensor : public Sensor {
+public:
+  INA226_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  void resetSensor(){};
+
+private:
+  INA226_WE *sensor = nullptr;
+};
+
+class HMC5883L_Sensor : public Sensor {
+public:
+  HMC5883L_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]);
+  void readSensor();
+  void resetSensor(){};
+
+private:
+  HMC5883L *sensor = nullptr;
+};
+
+void sensor_new();
+// void addSensor(uint8_t data[], size_t len);
+void readSensors();
+void serial_write(std::vector<uint8_t> data);
+std::vector<Sensor *> sensors;
+void reportBytes(std::vector<uint8_t>);
+
+class PCA9685_Module : public Module {
+public:
+  PCA9685_Module(std::vector<uint8_t> &data);
+  void readModule();
+  void writeModule(std::vector<uint8_t> &data);
+  void updateOne(std::vector<uint8_t> &data, size_t i);
+  void resetModule();
+  enum REGISTERS : uint8_t {
+    LEDn_DIFF = 0x04,
+    LEDn_ON_L_base = 0x06,
+
+    PRESCALE = 0xFE,
+    MODE_1 = 0x00,
+    MODE_1_VAL = 0xA0, // auto increment
+    MODE_1_VAL_SLEEP = 0x30
+  };
+
+private:
+  int i2c_port = 0;
+  uint8_t addr = 0b0100'0000;
+  bool ok = true;
+};
+
+class Hiwonder_Servo : public Module {
+public:
+  Hiwonder_Servo(std::vector<uint8_t> &data);
+  void readModule();
+  void writeModule(std::vector<uint8_t> &data);
+  bool writeSingle(std::vector<uint8_t> &data, size_t i, bool single);
+  void resetModule(){};
+
+private:
+  HiwonderBus *bus = nullptr;
+  std::vector<HiwonderServo *> servos = {};
+  int enabled_servos = 0;
+};
+
+// class Shutdown_Relay : public Module {
+// public:
+//   Shutdown_Relay(std::vector<uint8_t> &data);
+//   void readModule();
+//   void writeModule(std::vector<uint8_t> &data);
+//   void resetModule(){};
+
+// private:
+//   int pin = 0;
+//   bool enabled = false;
+//   bool enable_on = true;
+//   int wait_time = 10;
+//   decltype(time_us_32()) start_time = 0;
+// };
+
+std::vector<Module *> modules;
+void module_new();
+void module_data();
+
+const auto WATCHDOG_TIME = 5'000; // 5s timeout
+
+void get_id();
+void set_id();
+
+#endif // TELEMETRIX4RPIPICO_TELEMETRIX4RPIPICO_H

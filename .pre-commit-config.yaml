@@ -1,0 +1,23 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+    - repo: local
+      hooks:
+          - id: clang-format
+            name: clang-format
+            entry: bash -c 'FILES=`find -type f -regex ".*\.\(cpp\|hpp\|h\|c\)$" -not -path "./build/*"`;  clang-format-14 --Werror $FILES -style=llvm -i'
+            language: system
+            types: [c]
+            pass_filenames: false
+          - id: cmake-format
+            entry: bash -c 'cmake-format CMakeLists.txt -i'
+            language: system
+            types: [cmake]
+            pass_filenames: false
+            name: cmake-format
+          - id: shell-format
+            entry: bash -c 'shopt -s globstar; shfmt -s -w **/**.sh'
+            language: system
+            types: [shell]
+            pass_filenames: false
+            name: shell-format

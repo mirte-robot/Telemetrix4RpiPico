@@ -3,3 +3,8 @@
 # /cmake-build-release/
 build/
 .vscode/
+!.vsode/launch.json
+!.vscode/settings.json
+test/
+build2/
+build_rel/
