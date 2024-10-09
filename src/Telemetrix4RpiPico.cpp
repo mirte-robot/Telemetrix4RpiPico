@@ -1328,7 +1328,7 @@ VEML6040_Sensor::VEML6040_Sensor(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
 void VEML6040_Sensor::init_sequence() {
   bool ok = write_i2c(this->i2c_port, this->i2c_addr,
                       {
-                          // 0,             // register 0
+                          0,             // register 0
                           // 0b000 << 4 |   // timing 40ms
                           //     0b0 << 2 | // no trigger
                           //     0b0 << 1 | // auto mode
@@ -1339,7 +1339,7 @@ void VEML6040_Sensor::init_sequence() {
   sleep_ms(10);
   ok &= write_i2c(this->i2c_port, this->i2c_addr,
                   {
-                      // 0,             // register 0
+                      0,             // register 0
                       // 0b000 << 4 |   // timing 40ms
                       //     0b0 << 2 | // no trigger
                       //     0b0 << 1 | // auto mode
