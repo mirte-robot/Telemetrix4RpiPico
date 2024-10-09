@@ -726,6 +726,7 @@ public:
 private:
   int i2c_port = 0;
   uint8_t addr = 0b0100'0000;
+  bool ok = true;
 };
 
 class Hiwonder_Servo : public Module {

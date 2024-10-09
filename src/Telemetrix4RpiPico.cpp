@@ -647,8 +647,11 @@ void init_single_encoder(int A, encoder_t *enc) {
   enc->A = A;
   enc->type = SINGLE;
 }
+int x = 0;
+
 bool encoder_callback(repeating_timer_t *timer) {
   (void)timer;
+  x++;
   if (!mutex_try_enter(&encoders.mutex, NULL)) {
     return true;
   }
@@ -697,7 +700,7 @@ bool create_encoder_timer() {
   107 rpm, 1320 ticks/rot
   -> ~1.8 rot/s * 1320 = 2354 ticks/s
 */
-  if (!add_repeating_timer_us(-1'000'000 / hz, encoder_callback, NULL,
+  if (!add_repeating_timer_us(1'000'000 / hz, encoder_callback, NULL,
                               &encoders.trigger_timer)) {
     // printf("Failed to add timer\n");
     return false;
@@ -732,13 +735,24 @@ void encoder_new() {
 }
 
 int encoder_report_message[] = {3, ENCODER_REPORT, 0, 0};
-
+int c = 0;
 void scan_encoders() {
   if (encoders.next_encoder_index < 1) {
+    send_debug_info(1,1);
     return;
   }
-  if (!mutex_enter_timeout_us(&encoders.mutex, 10)) {
+  if (!mutex_try_enter(&encoders.mutex, NULL)) {
+    send_debug_info(1, 0);
     return;
+  }
+  if(c%100 == 0){ 
+    // send_debug_info(2, x);
+    c = 0;
+    
+    if(x == 0) {
+      // create_encoder_timer();
+    }
+    x = 0;
   }
   for (int i = 0; i < encoders.next_encoder_index; i++) {
     encoder_t *enc = &encoders.encoders[i];
@@ -1624,7 +1638,8 @@ void PCA9685_Module::updateOne(std::vector<uint8_t> &dataList, size_t i) {
   data[2] = dataList[2 + i * 5];
   data[3] = dataList[3 + i * 5];
   data[4] = dataList[4 + i * 5];
-  write_i2c_t(this->i2c_port, this->addr, data);
+  this->ok = write_i2c_t(this->i2c_port, this->addr, data);
+
 }
 
 void PCA9685_Module::writeModule(std::vector<uint8_t> &data) {
@@ -1633,9 +1648,12 @@ void PCA9685_Module::writeModule(std::vector<uint8_t> &data) {
   // 1 + 2 ON
   // 3+4 OFF
   // update real module
-
+  this->ok = true;
   for (uint8_t i = 0; i < data.size() / 5; i++) {
     this->updateOne(data, i);
+    if(!this->ok){
+      return;
+    }
   }
 }
 
