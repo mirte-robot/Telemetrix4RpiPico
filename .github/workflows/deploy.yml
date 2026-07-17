@@ -29,15 +29,9 @@ jobs:
             run: |
               cp ./build2/Telemetrix4RpiPico.uf2 ./
               cp ./build2/Telemetrix4RpiPico.elf ./
-          # - name: install nodejs
-          #   run: |
-          #       apt update
-          #       apt install curl unzip -y
-          #       curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
-          #       chmod +x nodesource_setup.sh
-          #       ./nodesource_setup.sh
-          #       apt-get install -y nodejs
-          #       node -v
+              cp ./build_pico2/Telemetrix4RpiPico_merged.uf2 ./Telemetrix4RpiPico_merged.uf2
+              cp ./build_pico2/Telemetrix4RpiPico.elf ./Telemetrix4RpiPico_pico2.elf
+              cp ./build_pico2/Telemetrix4RpiPico.uf2 ./Telemetrix4RpiPico_pico2.uf2
           - name: Put environment variable into the env context
             run: echo "app_name=$APP_NAME" >> $GITHUB_ENV
           - name: Archive production artifacts
@@ -47,6 +41,9 @@ jobs:
               path: |
                 Telemetrix4RpiPico.uf2
                 Telemetrix4RpiPico.elf
+                Telemetrix4RpiPico_merged.uf2
+                Telemetrix4RpiPico_pico2.elf
+                Telemetrix4RpiPico_pico2.uf2
           - name: Push to release
             uses: softprops/action-gh-release@v3
             if: startsWith(github.ref, 'refs/tags/')
@@ -54,6 +51,9 @@ jobs:
                 files: |
                   Telemetrix4RpiPico.uf2
                   Telemetrix4RpiPico.elf
+                  Telemetrix4RpiPico_merged.uf2
+                  Telemetrix4RpiPico_pico2.elf
+                  Telemetrix4RpiPico_pico2.uf2
                 generate_release_notes: true
           - name: Check if mirte-sd-image-tools has release with same tag
             id: check_release
@@ -87,6 +87,9 @@ jobs:
               files: |
                 Telemetrix4RpiPico.uf2
                 Telemetrix4RpiPico.elf
+                # Telemetrix4RpiPico_merged.uf2
+                # Telemetrix4RpiPico_pico2.elf
+                # Telemetrix4RpiPico_pico2.uf2
               generate_release_notes: false
               tag_name: ${{ github.ref_name }}
               token: ${{ secrets.RELEASE_TOKEN }} # needs contents permission on mirte-sd-image-tools 
