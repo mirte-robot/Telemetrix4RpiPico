@@ -36,8 +36,9 @@ void TmxSSD1306::writeModule(std::vector<uint8_t> &data) {
 
   } else if (data[0] == MessageType::TEXT_DONE) {
     this->frameBuffer.clear();
-    pico_ssd1306::drawText(display, courb08_6x11, this->text_buff.c_str(), 0,
-                           0);
+    pico_ssd1306::drawText(display, font_6x8, this->text_buff.c_str(), 0, 0,
+                           pico_ssd1306::WriteMode::ADD,
+                           pico_ssd1306::Rotation::deg0, 1);
     display->sendBuffer(); // 'non'blocking, real data transfer in the postWrite
                            // call.
     auto len = this->text_buff.length();
