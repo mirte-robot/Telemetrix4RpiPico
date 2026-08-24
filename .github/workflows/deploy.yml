@@ -23,15 +23,17 @@ jobs:
               submodules: true
           - name: build
             run: |
-              chmod +x build.sh
-              ./build.sh
+              chmod +x build_variants.sh
+              ./build_variants.sh
+              chmod +x merge.sh
+              ./merge.sh
           - name: Copy uf2 file
             run: |
-              cp ./build2/Telemetrix4RpiPico.uf2 ./
-              cp ./build2/Telemetrix4RpiPico.elf ./
-              cp ./build_pico2/Telemetrix4RpiPico_merged.uf2 ./Telemetrix4RpiPico_merged.uf2
-              cp ./build_pico2/Telemetrix4RpiPico.elf ./Telemetrix4RpiPico_pico2.elf
-              cp ./build_pico2/Telemetrix4RpiPico.uf2 ./Telemetrix4RpiPico_pico2.uf2
+              cp ./build_pico_w/Telemetrix4RpiPico.uf2 ./
+              cp ./build_pico_w/Telemetrix4RpiPico.elf ./
+              cp ./build_pico2_w/Telemetrix4RpiPico_merged.uf2 ./Telemetrix4RpiPico_merged.uf2
+              cp ./build_pico2_w/Telemetrix4RpiPico.elf ./Telemetrix4RpiPico_pico2.elf
+              cp ./build_pico2_w/Telemetrix4RpiPico.uf2 ./Telemetrix4RpiPico_pico2.uf2
           - name: Put environment variable into the env context
             run: echo "app_name=$APP_NAME" >> $GITHUB_ENV
           - name: Archive production artifacts
