@@ -110,8 +110,8 @@ target_link_libraries(
   pico_ssd1306
   Adafruit_BNO055)
 
-if (PICO_CYW43_SUPPORTED)
-    target_link_libraries(Telemetrix4RpiPico pico_cyw43_arch_none)
+if(PICO_CYW43_SUPPORTED)
+  target_link_libraries(Telemetrix4RpiPico pico_cyw43_arch_none)
 endif()
 
 set(SKIP_BOOTLOADER_ENTRY_PIN 1)
