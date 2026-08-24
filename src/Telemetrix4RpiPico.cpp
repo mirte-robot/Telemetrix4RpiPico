@@ -46,6 +46,7 @@
 #include "sensors/vl53l0x_sensor.hpp"
 
 #include "Telemetrix4RpiPico.hpp"
+#include "led_pin.hpp"
 #include "mirte_master.hpp"
 #include "sensors/sonar.hpp"
 #include "serialization.hpp"
@@ -55,8 +56,6 @@
  ******************************************************************/
 
 const auto ANALOG_OFFSET = 26;
-
-const uint LED_PIN = 25; // board LED
 
 // buffer to hold incoming command data
 uint8_t command_buffer[MAX_COMMAND_LENGTH];
@@ -204,20 +203,6 @@ void send_debug_info(uint id, uint value) {
                sizeof(debug_info_report_message) / sizeof(int));
 }
 
-/************************************************************
- * Blink the board led
- * @param blinks - number of blinks
- * @param delay - delay in milliseconds
- */
-void led_debug(int blinks, uint delay) {
-  for (int i = 0; i < blinks; i++) {
-    gpio_put(LED_PIN, 1);
-    sleep_ms(delay);
-    gpio_put(LED_PIN, 0);
-    sleep_ms(delay);
-  }
-}
-
 /*******************************************************************************
  *                  COMMAND FUNCTIONS
  ******************************************************************************/
@@ -309,6 +294,11 @@ void digital_write() {
   uint value;
   pin = command_buffer[DIGITAL_WRITE_GPIO_PIN];
   value = command_buffer[DIGITAL_WRITE_VALUE];
+  // special case for led pin:
+  if (pin == 200) {
+    set_led_pin(value);
+    return;
+  }
   gpio_put(pin, (bool)value);
 }
 
@@ -977,8 +967,13 @@ void get_next_command() {
     if (packet_size == 0) {
       return;
     }
-    gpio_put(LED_PIN,
-             !gpio_get(LED_PIN)); // toggle the led state for every packet
+#if 0
+    static bool led_state = false;
+    led_state = !led_state;
+    set_led_pin(led_state);
+#endif
+    // gpio_put(LED_PIN,
+    //          !gpio_get(LED_PIN)); // toggle the led state for every packet
 
   } else {
     // data part of the message
@@ -1581,9 +1576,6 @@ int main() {
   // gpio_init(14);
   // gpio_set_dir(14, GPIO_OUT);
   // gpio_put(14, 0);
-  gpio_init(LED_PIN);
-  gpio_set_dir(LED_PIN, GPIO_OUT);
-
   // stdio_init_all();
   stdio_usb_init();
   stdio_set_translate_crlf(&stdio_usb, false);
@@ -1593,6 +1585,9 @@ int main() {
   stdio_flush();
   check_uart_loopback(); // Mirte-master has pin 0 and 1 tied together, then
   //                        // don't want to use it
+  sleep_ms(1000);
+  init_led();
+
   led_debug(5, 100);
   adc_init();
   mm_detect();
@@ -1621,7 +1616,8 @@ int main() {
   // blink the board LED twice to show that the board is
   // starting afresh
   led_debug(2, 250);
-  gpio_put(LED_PIN, uart_enabled);
+  set_led_pin(uart_enabled);
+  // gpio_put(LED_PIN, uart_enabled);
 
   // watchdog_enable(WATCHDOG_TIME, 1); // Add watchdog requiring trigger every
   // 5s
