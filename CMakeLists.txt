@@ -114,12 +114,15 @@ if(PICO_CYW43_SUPPORTED)
   target_link_libraries(Telemetrix4RpiPico pico_cyw43_arch_none)
 endif()
 
-set(SKIP_BOOTLOADER_ENTRY_PIN 1)
-add_subdirectory(rp2040-serial-bootloader)
-# pico_set_linker_script(Telemetrix4RpiPico
-# ${CMAKE_CURRENT_SOURCE_DIR}/blink_noboot2.ld)
-
-bootloader_build_combined(Telemetrix4RpiPico)
+# if PICO_BOARD starts with "pico" and not "pico2", then we can add the serial
+# bootloader
+if(PICO_BOARD MATCHES "^pico" AND NOT PICO_BOARD MATCHES "^pico2")
+  # this bootloader only works for pico and pico_w, not for pico2, so we only
+  # add it for those boards
+  set(SKIP_BOOTLOADER_ENTRY_PIN 1)
+  add_subdirectory(rp2040-serial-bootloader)
+  bootloader_build_combined(Telemetrix4RpiPico)
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_custom_target(
