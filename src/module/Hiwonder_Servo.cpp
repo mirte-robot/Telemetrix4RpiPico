@@ -1,5 +1,6 @@
 #include "module/Hiwonder_Servo.hpp"
 
+#include "led_pin.hpp"
 #include "message_types.hpp"
 #include "serialization.hpp"
 
@@ -94,7 +95,7 @@ bool Hiwonder_Servo::writeSingle(std::vector<uint8_t> &data, size_t i,
   // ((int32_t)data[offset + 1 + numBytes * i] << 8) |
   //        data[offset + 2 + numBytes * i];
   auto time = decode_u16(data_span.subspan<3, sizeof(uint16_t)>());
-
+  send_debug_info(21, time);
   if (servoI >= this->servos.size()) {
     return false;
   }
@@ -306,7 +307,6 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
   }
   send_debug_info_dis(11, __LINE__);
 }
-const uint LED_PIN = 25; // board LED
 
 void Hiwonder_Servo::core1_update() {
   // led_debug(10, 100);
@@ -316,7 +316,6 @@ void Hiwonder_Servo::core1_update() {
   //   return;
   // }
   // send_debug_info_dis(31, 100);
-  // gpio_put(LED_PIN, !gpio_get(LED_PIN)); // toggle the led state
   if (this->enabled_servos == 0) {
     // send_debug_info(30, 0);
     return;

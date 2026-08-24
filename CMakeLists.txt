@@ -42,6 +42,7 @@ add_executable(
   src/i2c_helpers.cpp
   src/uart.cpp
   src/serialization.cpp
+  src/led_pin.cpp
   src/drivers/TCA9548.cpp
   src/drivers/AS5600.cpp
   src/drivers/HMC5883L.cpp
@@ -108,6 +109,10 @@ target_link_libraries(
   pico_multicore
   pico_ssd1306
   Adafruit_BNO055)
+
+if (PICO_CYW43_SUPPORTED)
+    target_link_libraries(Telemetrix4RpiPico pico_cyw43_arch_none)
+endif()
 
 set(SKIP_BOOTLOADER_ENTRY_PIN 1)
 add_subdirectory(rp2040-serial-bootloader)
