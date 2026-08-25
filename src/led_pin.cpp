@@ -3,7 +3,6 @@
 #include "pico/time.h"
 #include <led_pin.hpp>
 #include <stdio.h>
-const uint LED_PIN = 25; // board LED
 
 #ifdef CYW43_WL_GPIO_LED_PIN
 #include <pico/cyw43_arch.h>
@@ -61,13 +60,9 @@ void init_led() {
   gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
 #endif
   initialized_led = true;
-
-  // led_debug(3, 100);
 }
 
 void set_led_pin(bool value) {
-  // value = 1;
-  // return;
   if (!initialized_led) {
     init_led();
   }
@@ -89,10 +84,8 @@ void set_led_pin(bool value) {
 void led_debug(int blinks, uint16_t delay) {
   for (int i = 0; i < blinks; i++) {
     set_led_pin(1);
-    // gpio_put(LED_PIN, 1);
     sleep_ms(delay);
     set_led_pin(0);
-    // gpio_put(LED_PIN, 0);
     sleep_ms(delay);
   }
 }

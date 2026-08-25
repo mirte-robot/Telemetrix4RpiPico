@@ -95,7 +95,7 @@ bool Hiwonder_Servo::writeSingle(std::vector<uint8_t> &data, size_t i,
   // ((int32_t)data[offset + 1 + numBytes * i] << 8) |
   //        data[offset + 2 + numBytes * i];
   auto time = decode_u16(data_span.subspan<3, sizeof(uint16_t)>());
-  send_debug_info(21, time);
+
   if (servoI >= this->servos.size()) {
     return false;
   }
@@ -322,7 +322,7 @@ void Hiwonder_Servo::core1_update() {
   }
   ScopedMutex bus_mutex(this->bus_mutex);
   if (!bus_mutex.try_lock()) {
-    send_debug_info(30, 1);
+    // send_debug_info(30, 1);
     // led_debug(10, 100);
     return;
   }

@@ -967,13 +967,6 @@ void get_next_command() {
     if (packet_size == 0) {
       return;
     }
-#if 0
-    static bool led_state = false;
-    led_state = !led_state;
-    set_led_pin(led_state);
-#endif
-    // gpio_put(LED_PIN,
-    //          !gpio_get(LED_PIN)); // toggle the led state for every packet
 
   } else {
     // data part of the message
@@ -1585,7 +1578,6 @@ int main() {
   stdio_flush();
   check_uart_loopback(); // Mirte-master has pin 0 and 1 tied together, then
   //                        // don't want to use it
-  sleep_ms(1000);
   init_led();
 
   led_debug(5, 100);
@@ -1617,10 +1609,6 @@ int main() {
   // starting afresh
   led_debug(2, 250);
   set_led_pin(uart_enabled);
-  // gpio_put(LED_PIN, uart_enabled);
-
-  // watchdog_enable(WATCHDOG_TIME, 1); // Add watchdog requiring trigger every
-  // 5s
 
   // infinite loop
   uint32_t last_scan = 0;

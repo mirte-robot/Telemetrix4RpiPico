@@ -59,8 +59,6 @@ extern void i2c_write();
 
 extern void sonar_new();
 
-// extern void led_debug(int blinks, uint delay);
-
 extern void send_debug_info(uint id, uint value);
 
 extern void dht_new();
@@ -193,8 +191,6 @@ const auto WATCHDOG_TIME = 5'000; // 5s timeout
 extern volatile bool uart_enabled;
 
 bool timeout_safe();
-
-// extern void led_debug(int blinks, uint delay);
 
 void get_id();
 void set_id();
