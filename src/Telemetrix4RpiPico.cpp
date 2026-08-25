@@ -220,6 +220,9 @@ void set_pin_mode() {
   case PIN_MODES::INPUT:
   case PIN_MODES::INPUT_PULL_UP:
   case PIN_MODES::INPUT_PULL_DOWN:
+    if (pin >= MAX_DIGITAL_PINS_SUPPORTED) {
+      return;
+    }
     the_digital_pins[pin].pin_mode = mode;
     the_digital_pins[pin].reporting_enabled =
         command_buffer[SET_PIN_MODE_DIGITAL_IN_REPORTING_STATE];
@@ -234,11 +237,18 @@ void set_pin_mode() {
     }
     break;
   case PIN_MODES::OUTPUT:
+    if (pin >= MAX_DIGITAL_PINS_SUPPORTED) {
+      return;
+    }
     the_digital_pins[pin].pin_mode = mode;
     gpio_init(pin);
     gpio_set_dir(pin, GPIO_OUT);
     break;
   case PIN_MODES::PWM: {
+    if (pin >= MAX_DIGITAL_PINS_SUPPORTED) {
+      return;
+    }
+
     /* Here we will set the operating frequency to be 50 hz to
        simplify support PWM as well as servo support.
     */
@@ -271,6 +281,9 @@ void set_pin_mode() {
     if (analog_pin == ADC_TEMPERATURE_REGISTER) {
       adc_set_temp_sensor_enabled(true);
     }
+    if (analog_pin >= MAX_ANALOG_PINS_SUPPORTED || analog_pin < 0) {
+      return;
+    }
     the_analog_pins[analog_pin].reporting_enabled =
         command_buffer[SET_PIN_MODE_ANALOG_IN_REPORTING_STATE];
     // save the differential value
@@ -299,6 +312,9 @@ void digital_write() {
     set_led_pin(value);
     return;
   }
+  if (pin > MAX_DIGITAL_PINS_SUPPORTED) {
+    return;
+  }
   gpio_put(pin, (bool)value);
 }
 
@@ -313,7 +329,9 @@ void pwm_write() {
   for (int i = 0; i < msg_count; i++) {
     auto offset = i * 3;
     pin = command_buffer[offset + PWM_WRITE_GPIO_PIN];
-
+    if (pin >= MAX_DIGITAL_PINS_SUPPORTED) {
+      continue;
+    }
     value = decode_u16(std::span<uint8_t, sizeof(uint16_t)>(
         data.data() + offset + SET_PIN_MODE_PWM_HIGH_VALUE, sizeof(uint16_t)));
     if (value == 0 || value >= top) {
