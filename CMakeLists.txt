@@ -114,9 +114,8 @@ if(PICO_CYW43_SUPPORTED)
   target_link_libraries(Telemetrix4RpiPico pico_cyw43_arch_none)
 endif()
 
-# if PICO_BOARD starts with "pico" and not "pico2", then we can add the serial
-# bootloader
-if(PICO_BOARD MATCHES "^pico" AND NOT PICO_BOARD MATCHES "^pico2")
+# if it's a rp2040 chip, then we can add the bootloader otherwise not.
+if(PICO_PLATFORM MATCHES rp2040)
   # this bootloader only works for pico and pico_w, not for pico2, so we only
   # add it for those boards
   set(SKIP_BOOTLOADER_ENTRY_PIN 1)
