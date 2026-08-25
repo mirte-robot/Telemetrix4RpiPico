@@ -1,5 +1,6 @@
 #include "module/Hiwonder_Servo.hpp"
 
+#include "led_pin.hpp"
 #include "message_types.hpp"
 #include "serialization.hpp"
 
@@ -306,7 +307,6 @@ void Hiwonder_Servo::writeModule(std::vector<uint8_t> &data) {
   }
   send_debug_info_dis(11, __LINE__);
 }
-const uint LED_PIN = 25; // board LED
 
 void Hiwonder_Servo::core1_update() {
   // led_debug(10, 100);
@@ -316,14 +316,13 @@ void Hiwonder_Servo::core1_update() {
   //   return;
   // }
   // send_debug_info_dis(31, 100);
-  // gpio_put(LED_PIN, !gpio_get(LED_PIN)); // toggle the led state
   if (this->enabled_servos == 0) {
     // send_debug_info(30, 0);
     return;
   }
   ScopedMutex bus_mutex(this->bus_mutex);
   if (!bus_mutex.try_lock()) {
-    send_debug_info(30, 1);
+    // send_debug_info(30, 1);
     // led_debug(10, 100);
     return;
   }

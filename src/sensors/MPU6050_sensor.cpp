@@ -3,8 +3,8 @@
 extern void send_debug_info(uint id, uint value);
 
 MPU6050_Module::MPU6050_Module(uint8_t settings[SENSORS_MAX_SETTINGS_A]) {
-  send_debug_info(30, settings[0]);
-  send_debug_info(31, settings[1]);
+  // send_debug_info(30, settings[0]);
+  // send_debug_info(31, settings[1]);
   this->mpu = new MPU6050(settings[0] == 1 ? i2c1 : i2c0, settings[1]);
   // data format: i2c port, i2c address
 }
