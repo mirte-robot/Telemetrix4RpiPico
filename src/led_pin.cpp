@@ -8,9 +8,13 @@ const uint LED_PIN = 25; // board LED
 #ifdef CYW43_WL_GPIO_LED_PIN
 #include <pico/cyw43_arch.h>
 #define TEST_LED_PIN 1
+#warning                                                                       \
+    "CYW43_WL_GPIO_LED_PIN defined, so wifi support is compiled in. Will check if board has internal led pin or not."
 #else
 // no need to check if no wifi support compiled into.
 #define TEST_LED_PIN 0
+#warning                                                                       \
+    "CYW43_WL_GPIO_LED_PIN not defined, so wifi support is not compiled in. Will assume board has internal led pin."
 #endif
 
 #ifndef PICO_DEFAULT_LED_PIN
@@ -32,12 +36,12 @@ void init_led() {
   adc_select_input(3);
   const float conversion_factor = 3.3f / (1 << 12);
   uint16_t result = adc_read();
-  //   printf("ADC3 value: 0x%03x, voltage: %f V\n", result,
-  //          result * conversion_factor);
+  // printf("ADC3 value: 0x%03x, voltage: %f V\n", result,
+  //        result * conversion_factor);
   gpio_init(25);
   gpio_set_dir(25, GPIO_IN);
   uint value = gpio_get(25);
-  //   printf("GP25 value: %i", value);
+  // printf("GP25 value: %i", value);
   if (result > 0x100) {
     internal_led_pin = true;
   } else {
@@ -58,7 +62,7 @@ void init_led() {
 #endif
   initialized_led = true;
 
-  led_debug(3, 100);
+  // led_debug(3, 100);
 }
 
 void set_led_pin(bool value) {
@@ -70,7 +74,7 @@ void set_led_pin(bool value) {
   if (internal_led_pin) {
     gpio_put(PICO_DEFAULT_LED_PIN, value);
   } else {
-#if PICO_CYW43_SUPPORTED
+#ifdef CYW43_WL_GPIO_LED_PIN
     // apparently we're pico-w board, which has no internal led pin
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, value);
 #endif
