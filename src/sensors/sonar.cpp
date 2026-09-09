@@ -134,8 +134,10 @@ void scan_sonars() {
   }
   if (sonar_count <
       0) { // mutex not initialized and don't need to scan the empty list
-    return;
+        last_scan += 100'000;
+        return;
   }
+  
   if (!mutex_try_enter(&the_hc_sr04s.mutex, NULL)) {
     // also don't update the last_scan variable
     return;
@@ -162,8 +164,9 @@ void scan_sonars() {
       distance = 0xFFFD; // must result in +Inf in the computer
     } else {
       // 1cm increments
-      distance = (sonar->last_time_diff) / (58.0);
+      distance = (sonar->last_time_diff) / (58);
     }
+    send_debug_info(4, sonar->last_time_diff);
     if (distance == sonar->last_dist) {
       continue;
     }

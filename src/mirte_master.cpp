@@ -96,12 +96,9 @@ void detect_mm_button_hold() {
   gpio_put(25, check_usb_connection());
 }
 pico_ssd1306::SSD1306 *mirte_master_display = nullptr;
-void init_mm_screen() {
-reset_i2c(3, 2, 1);  
+void show_boot_screen(i2c_inst *i2c) {
 
-  // Initialize the display
-
-  mirte_master_display = new pico_ssd1306::SSD1306(i2c1, 0x3C,pico_ssd1306::Size::W128xH64);
+  mirte_master_display = new pico_ssd1306::SSD1306(i2c, 0x3C,pico_ssd1306::Size::W128xH64);
   mirte_master_display->setPostWrite(false);
   mirte_master_display->setOrientation(0);
 
@@ -114,16 +111,44 @@ reset_i2c(3, 2, 1);
   // so the logo will be overwritten with the new data.
   // TODO: check if it works with a static buffer
   // TODO: maybe delete mirte_master_display after the config initializes a new display, to free up memory
+
+};
+
+// i2c pins on mirte pioneer pcb
+std::array<std::array<int, 3>, 2> i2c_pcb_pins = {{{11, 10, 1}, {5, 4, 0}}}; // scl, sda, port
+
+void show_boot_screen(bool mm_pcb) {
+  if (!mm_pcb) {
+    for(auto pins: i2c_pcb_pins) {
+      
+      reset_i2c(pins[0], pins[1], pins[2]);
+      if(check_addr(pins[2], 0x3C)) {
+        show_boot_screen(pins[2] == 0 ? i2c0 : i2c1);
+        return;
+      }
+      // reset pins to default state, then config can set them later
+      gpio_set_function(pins[0], GPIO_FUNC_NULL);
+      gpio_set_function(pins[1], GPIO_FUNC_NULL);
+    }
+  } else {
+    // Mirte master pcb
+    reset_i2c(3, 2, 1);
+    if(!check_addr(1, 0x3C)) {
+      return;
+    }
+    show_boot_screen(i2c1);
+  }
 }
 
 
 void mm_detect() {
   if (uart_enabled) {
     is_mm = false;
+    show_boot_screen(false);
   } else {
     is_mm = true;
     init_mm_button_hold();
-    init_mm_screen();
+    show_boot_screen(true);
   }
 }
 
