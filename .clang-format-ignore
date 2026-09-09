@@ -1,0 +1,4 @@
+./src/mirte_logo.cpp
+./pico-ssd1306
+./rp2040-serial-bootloader
+./libs/*

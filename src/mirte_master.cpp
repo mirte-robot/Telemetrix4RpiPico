@@ -98,7 +98,8 @@ void detect_mm_button_hold() {
 pico_ssd1306::SSD1306 *mirte_master_display = nullptr;
 void show_boot_screen(i2c_inst *i2c) {
 
-  mirte_master_display = new pico_ssd1306::SSD1306(i2c, 0x3C,pico_ssd1306::Size::W128xH64);
+  mirte_master_display =
+      new pico_ssd1306::SSD1306(i2c, 0x3C, pico_ssd1306::Size::W128xH64);
   mirte_master_display->setPostWrite(false);
   mirte_master_display->setOrientation(0);
 
@@ -107,22 +108,23 @@ void show_boot_screen(i2c_inst *i2c) {
   mirte_master_display->setBuffer(mirte_logo);
   mirte_master_display->sendBuffer();
   // the display should now be showing the logo.
-  // when the config initializes a new display, it will just send new data to the display, 
-  // so the logo will be overwritten with the new data.
+  // when the config initializes a new display, it will just send new data to
+  // the display, so the logo will be overwritten with the new data.
   // TODO: check if it works with a static buffer
-  // TODO: maybe delete mirte_master_display after the config initializes a new display, to free up memory
-
+  // TODO: maybe delete mirte_master_display after the config initializes a new
+  // display, to free up memory
 };
 
 // i2c pins on mirte pioneer pcb
-std::array<std::array<int, 3>, 2> i2c_pcb_pins = {{{11, 10, 1}, {5, 4, 0}}}; // scl, sda, port
+std::array<std::array<int, 3>, 2> i2c_pcb_pins = {
+    {{11, 10, 1}, {5, 4, 0}}}; // scl, sda, port
 
 void show_boot_screen(bool mm_pcb) {
   if (!mm_pcb) {
-    for(auto pins: i2c_pcb_pins) {
-      
+    for (auto pins : i2c_pcb_pins) {
+
       reset_i2c(pins[0], pins[1], pins[2]);
-      if(check_addr(pins[2], 0x3C)) {
+      if (check_addr(pins[2], 0x3C)) {
         show_boot_screen(pins[2] == 0 ? i2c0 : i2c1);
         return;
       }
@@ -133,13 +135,12 @@ void show_boot_screen(bool mm_pcb) {
   } else {
     // Mirte master pcb
     reset_i2c(3, 2, 1);
-    if(!check_addr(1, 0x3C)) {
+    if (!check_addr(1, 0x3C)) {
       return;
     }
     show_boot_screen(i2c1);
   }
 }
-
 
 void mm_detect() {
   if (uart_enabled) {
@@ -156,7 +157,6 @@ void mm_loop() {
   if (is_mm) {
     check_mirte_master();
     detect_mm_button_hold();
-
   }
 }
 #endif

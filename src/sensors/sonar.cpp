@@ -134,10 +134,10 @@ void scan_sonars() {
   }
   if (sonar_count <
       0) { // mutex not initialized and don't need to scan the empty list
-        last_scan += 100'000;
-        return;
+    last_scan += 100'000;
+    return;
   }
-  
+
   if (!mutex_try_enter(&the_hc_sr04s.mutex, NULL)) {
     // also don't update the last_scan variable
     return;
