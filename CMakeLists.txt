@@ -68,7 +68,8 @@ add_executable(
   src/sensors/sensor.cpp
   src/sensors/sonar.cpp
   src/sensors/veml6040_sensor.cpp
-  src/sensors/vl53l0x_sensor.cpp)
+  src/sensors/vl53l0x_sensor.cpp
+  src/mirte_logo.cpp)
 find_package(Git REQUIRED)
 execute_process(
   COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD

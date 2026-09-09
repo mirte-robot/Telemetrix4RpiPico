@@ -95,6 +95,27 @@ void detect_mm_button_hold() {
   }
   gpio_put(25, check_usb_connection());
 }
+pico_ssd1306::SSD1306 *mirte_master_display = nullptr;
+void init_mm_screen() {
+reset_i2c(3, 2, 1);  
+
+  // Initialize the display
+
+  mirte_master_display = new pico_ssd1306::SSD1306(i2c1, 0x3C,pico_ssd1306::Size::W128xH64);
+  mirte_master_display->setPostWrite(false);
+  mirte_master_display->setOrientation(0);
+
+  mirte_master_display->clear();
+  mirte_master_display->sendBuffer();
+  mirte_master_display->setBuffer(mirte_logo);
+  mirte_master_display->sendBuffer();
+  // the display should now be showing the logo.
+  // when the config initializes a new display, it will just send new data to the display, 
+  // so the logo will be overwritten with the new data.
+  // TODO: check if it works with a static buffer
+  // TODO: maybe delete mirte_master_display after the config initializes a new display, to free up memory
+}
+
 
 void mm_detect() {
   if (uart_enabled) {
@@ -102,13 +123,15 @@ void mm_detect() {
   } else {
     is_mm = true;
     init_mm_button_hold();
+    init_mm_screen();
   }
 }
 
 void mm_loop() {
   if (is_mm) {
     check_mirte_master();
+    detect_mm_button_hold();
+
   }
-  detect_mm_button_hold();
 }
 #endif
