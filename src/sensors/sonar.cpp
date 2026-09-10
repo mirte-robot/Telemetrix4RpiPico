@@ -166,7 +166,6 @@ void scan_sonars() {
       // 1cm increments
       distance = (sonar->last_time_diff) / (58);
     }
-    send_debug_info(4, sonar->last_time_diff);
     if (distance == sonar->last_dist) {
       continue;
     }

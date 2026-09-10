@@ -1,8 +1,12 @@
 #include <mirte_master.hpp>
 
 // generated from images/mirte_logo_inv.png with https://javl.github.io/image2cpp/
-
-uint8_t mirte_logo[1024] = {
+// settings: 
+// draw mode horizontal (otherwise it'll be noise)
+// vertical when directly using it as framebuffer, but horizontal when using addBitmapImage
+// plain bytes
+// rest default settings
+const uint8_t mirte_logo[1024] = {
     // 'mirte_logo_inv', 128x64px
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . # # # # # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x33, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . # # . . # # # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
