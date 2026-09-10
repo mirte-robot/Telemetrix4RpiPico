@@ -35,6 +35,12 @@ project(Telemetrix4RpiPico)
 pico_sdk_init()
 set(PICO_USE_FASTEST_SUPPORTED_CLOCK 100)
 
+# set ENABLE_BOOT_SCREEN to 1 to enable the boot screen on the Mirte Master PCB
+set(ENABLE_BOOT_SCREEN
+    1
+    CACHE BOOL "Enable boot screen on Mirte Master PCB")
+add_definitions(-DENABLE_BOOT_SCREEN=${ENABLE_BOOT_SCREEN})
+
 add_executable(
   Telemetrix4RpiPico
   src/Telemetrix4RpiPico.cpp

@@ -111,6 +111,7 @@ std::array<std::array<int, 3>, 2> i2c_pcb_pins = {
     {{11, 10, 1}, {5, 4, 0}}}; // scl, sda, port
 
 void show_boot_screen(bool mm_pcb) {
+#if ENABLE_BOOT_SCREEN
   if (!mm_pcb) {
     for (auto pins : i2c_pcb_pins) {
       reset_i2c(pins[0], pins[1], pins[2]);
@@ -129,6 +130,7 @@ void show_boot_screen(bool mm_pcb) {
     }
     show_boot_screen(i2c1);
   }
+#endif
 }
 
 void mm_detect() {
