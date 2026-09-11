@@ -1,15 +1,59 @@
 #include "mirte_master.hpp"
 bool is_mm = false; // whether the board is a mirte master pcb, determined by
                     // checking if the uart pins are tied together
+
+#include "Telemetrix4RpiPico.hpp"
+
+void show_boot_screen(i2c_inst *i2c) {
+  auto mirte_master_display =
+      pico_ssd1306::SSD1306(i2c, 0x3C, pico_ssd1306::Size::W128xH64);
+  mirte_master_display.setPostWrite(false);
+  mirte_master_display.setOrientation(0);
+
+  mirte_master_display.clear();
+  mirte_master_display.addBitmapImage(0, 0, 128, 64, mirte_logo);
+  mirte_master_display.sendBuffer();
+};
+
+// i2c pins on mirte pioneer pcb
+std::array<std::array<int, 3>, 2> i2c_pcb_pins = {
+    {{11, 10, 1}, {5, 4, 0}}}; // scl, sda, port
+
+void show_boot_screen(bool mm_pcb) {
+  //  led_debug(2, 1000);
+#if ENABLE_BOOT_SCREEN
+  if (!mm_pcb) {
+    // normal pcb, try both i2c connectors.
+    for (auto pins : i2c_pcb_pins) {
+      reset_i2c(pins[0], pins[1], pins[2]);
+      if (check_addr(pins[2], 0x3C)) {
+        show_boot_screen(pins[2] == 0 ? i2c0 : i2c1);
+      }
+      // reset pins to default state, then config can set them later
+      gpio_set_function(pins[0], GPIO_FUNC_NULL);
+      gpio_set_function(pins[1], GPIO_FUNC_NULL);
+    }
+  } else {
+    // Mirte master pcb
+    reset_i2c(3, 2, 1);
+    if (!check_addr(1, 0x3C)) {
+      return;
+    }
+    show_boot_screen(i2c1);
+  }
+#endif
+}
 #if !ENABLE_MIRTE_MASTER
 
-void mm_detect() { is_mm = false; }
+void mm_detect() {
+  is_mm = false;
+  show_boot_screen(false);
+}
 void mm_loop() {
   // do nothing, as mm is disabled
 }
 
 #else
-#include "Telemetrix4RpiPico.hpp"
 #include "uart.hpp"
 
 bool check_usb_connection() {
@@ -99,16 +143,18 @@ void detect_mm_button_hold() {
 void mm_detect() {
   if (uart_enabled) {
     is_mm = false;
+    show_boot_screen(false);
   } else {
     is_mm = true;
     init_mm_button_hold();
+    show_boot_screen(true);
   }
 }
 
 void mm_loop() {
   if (is_mm) {
     check_mirte_master();
+    detect_mm_button_hold();
   }
-  detect_mm_button_hold();
 }
 #endif
