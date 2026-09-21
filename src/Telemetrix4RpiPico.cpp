@@ -706,7 +706,7 @@ bool create_encoder_timer() {
   107 rpm, 1320 ticks/rot
   -> ~1.8 rot/s * 1320 = 2354 ticks/s
 */
-  if (!add_repeating_timer_us(1'000'000 / hz, encoder_callback, NULL,
+  if (!add_repeating_timer_us(-1'000'000 / hz, encoder_callback, NULL,
                               &encoders.trigger_timer)) {
     // printf("Failed to add timer\n");
     return false;
@@ -754,12 +754,10 @@ void scan_encoders() {
   }
   for (int i = 0; i < encoders.next_encoder_index; i++) {
     encoder_t *enc = &encoders.encoders[i];
-    if (enc->step != 0) {
-      encoder_report_message[ENCODER_REPORT_PIN_A] = (uint8_t)enc->A;
-      encoder_report_message[ENCODER_REPORT_STEP] = enc->step;
-      enc->step = 0;
-      serial_write(encoder_report_message, 4);
-    }
+    encoder_report_message[ENCODER_REPORT_PIN_A] = (uint8_t)enc->A;
+    encoder_report_message[ENCODER_REPORT_STEP] = enc->step;
+    enc->step = 0;
+    serial_write(encoder_report_message, 4);
   }
   mutex_exit(&encoders.mutex);
 }
