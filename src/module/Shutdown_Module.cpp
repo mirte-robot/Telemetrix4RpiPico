@@ -1,7 +1,7 @@
 #include <module/Shutdown_Module.hpp>
 // #include "Telemetrix4RpiPico.hpp"
 #include "hardware/watchdog.h"
-const uint LED_PIN = 25; // board LED
+#include "led_pin.hpp"
 bool check_usb_connection();
 void Shutdown_Relay::readModule() {
   if (this->enabled) {
@@ -43,5 +43,6 @@ void Shutdown_Relay::writeModule(std::vector<uint8_t> &data) {
     enable_watchdog();
     watchdog_enable_shutdown = true;
   }
-  gpio_put(LED_PIN, this->enabled);
+  // set_led_pin(this->enabled);
+  // gpio_put(LED_PIN, this->enabled);
 }

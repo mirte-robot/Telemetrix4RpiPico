@@ -42,6 +42,7 @@ add_executable(
   src/i2c_helpers.cpp
   src/uart.cpp
   src/serialization.cpp
+  src/led_pin.cpp
   src/drivers/TCA9548.cpp
   src/drivers/AS5600.cpp
   src/drivers/HMC5883L.cpp
@@ -109,12 +110,18 @@ target_link_libraries(
   pico_ssd1306
   Adafruit_BNO055)
 
-set(SKIP_BOOTLOADER_ENTRY_PIN 1)
-add_subdirectory(rp2040-serial-bootloader)
-# pico_set_linker_script(Telemetrix4RpiPico
-# ${CMAKE_CURRENT_SOURCE_DIR}/blink_noboot2.ld)
+if(PICO_CYW43_SUPPORTED)
+  target_link_libraries(Telemetrix4RpiPico pico_cyw43_arch_none)
+endif()
 
-bootloader_build_combined(Telemetrix4RpiPico)
+# if it's a rp2040 chip, then we can add the bootloader otherwise not.
+if(PICO_PLATFORM MATCHES rp2040)
+  # this bootloader only works for pico and pico_w, not for pico2, so we only
+  # add it for those boards
+  set(SKIP_BOOTLOADER_ENTRY_PIN 1)
+  add_subdirectory(rp2040-serial-bootloader)
+  bootloader_build_combined(Telemetrix4RpiPico)
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_custom_target(

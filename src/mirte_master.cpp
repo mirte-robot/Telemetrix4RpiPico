@@ -1,4 +1,5 @@
 #include "mirte_master.hpp"
+#include "led_pin.hpp"
 bool is_mm = false; // whether the board is a mirte master pcb, determined by
                     // checking if the uart pins are tied together
 #if !ENABLE_MIRTE_MASTER
@@ -93,7 +94,8 @@ void detect_mm_button_hold() {
       button_released_start = true;
     }
   }
-  gpio_put(25, check_usb_connection());
+  // set_led_pin(check_usb_connection());
+  // gpio_put(25, check_usb_connection());
 }
 
 void mm_detect() {
