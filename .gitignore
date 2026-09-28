@@ -1,11 +1,8 @@
 # Project exclude paths
 /cmake-build-debug/
-# /cmake-build-release/
-build/
 .vscode/
 !.vsode/launch.json
 !.vscode/settings.json
 .cache
 test/
-build2/
-build_rel/
+build*/
