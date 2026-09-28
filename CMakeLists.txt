@@ -1,18 +1,19 @@
-# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension
-# to work ==
+# cmake-format: off
+# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
 if(WIN32)
-  set(USERHOME $ENV{USERPROFILE})
+    set(USERHOME $ENV{USERPROFILE})
 else()
-  set(USERHOME $ENV{HOME})
+    set(USERHOME $ENV{HOME})
 endif()
-set(sdkVersion 2.2.0)
-set(toolchainVersion 14_2_Rel1)
-set(picotoolVersion 2.2.0-a4)
+set(sdkVersion 2.3.1)
+set(toolchainVersion 15_2_Rel1)
+set(picotoolVersion 2.3.1)
 set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
-if(EXISTS ${picoVscode})
-  include(${picoVscode})
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
 endif()
 # ====================================================================================
+# cmake-format: on
 set(PICO_BOARD
     pico
     CACHE STRING "Board type")
@@ -35,6 +36,12 @@ project(Telemetrix4RpiPico)
 pico_sdk_init()
 set(PICO_USE_FASTEST_SUPPORTED_CLOCK 100)
 
+# set ENABLE_BOOT_SCREEN to 1 to enable the boot screen on oled on the MIRTE PCB
+# tries i2c connectors on pioneer pcb, if MM then only the 'i2c3' connector.
+set(ENABLE_BOOT_SCREEN
+    1
+    CACHE BOOL "Enable boot screen on MIRTE PCB")
+add_definitions(-DENABLE_BOOT_SCREEN=${ENABLE_BOOT_SCREEN})
 add_executable(
   Telemetrix4RpiPico
   src/Telemetrix4RpiPico.cpp
@@ -68,7 +75,8 @@ add_executable(
   src/sensors/sensor.cpp
   src/sensors/sonar.cpp
   src/sensors/veml6040_sensor.cpp
-  src/sensors/vl53l0x_sensor.cpp)
+  src/sensors/vl53l0x_sensor.cpp
+  src/mirte_logo.cpp)
 find_package(Git REQUIRED)
 execute_process(
   COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
@@ -109,12 +117,16 @@ target_link_libraries(
   pico_ssd1306
   Adafruit_BNO055)
 
-set(SKIP_BOOTLOADER_ENTRY_PIN 1)
-add_subdirectory(rp2040-serial-bootloader)
-# pico_set_linker_script(Telemetrix4RpiPico
-# ${CMAKE_CURRENT_SOURCE_DIR}/blink_noboot2.ld)
+# when debugging in vscode, disable bootloader, otherwise debugger will not
+# work!
+if(1)
+  set(SKIP_BOOTLOADER_ENTRY_PIN 1)
+  add_subdirectory(rp2040-serial-bootloader)
+  # pico_set_linker_script(Telemetrix4RpiPico
+  # ${CMAKE_CURRENT_SOURCE_DIR}/blink_noboot2.ld)
 
-bootloader_build_combined(Telemetrix4RpiPico)
+  bootloader_build_combined(Telemetrix4RpiPico)
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_custom_target(

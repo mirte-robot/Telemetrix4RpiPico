@@ -164,6 +164,10 @@ out_without_reinit:
   return ret;
 }
 
+bool reserved_addr(uint8_t addr) {
+  return (addr & 0x78) == 0 || (addr & 0x78) == 0x78;
+}
+
 bool check_addr(int i2c_port, int addr) {
   i2c_inst_t *i2c;
 
@@ -172,6 +176,12 @@ bool check_addr(int i2c_port, int addr) {
   } else {
     i2c = i2c0;
   }
-  int ret = i2c_write_timeout_us(i2c, addr, nullptr, 0, false, 10);
-  return ret == PICO_ERROR_GENERIC;
+  int ret;
+  uint8_t rxdata;
+  if (reserved_addr(addr)) {
+    ret = PICO_ERROR_GENERIC;
+  } else {
+    ret = i2c_read_blocking(i2c, addr, &rxdata, 1, false);
+  }
+  return ret >= 0;
 }

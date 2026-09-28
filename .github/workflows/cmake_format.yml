@@ -11,7 +11,7 @@ jobs:
     - uses: DoozyX/clang-format-lint-action@v0.18
       with:
         source: '.'
-        exclude: './pico-ssd1306 ./rp2040-serial-bootloader'
+        # exclude: './pico-ssd1306 ./rp2040-serial-bootloader'
         extensions: 'c,h,cpp,hpp'
         clangFormatVersion: 18
         style: llvm
